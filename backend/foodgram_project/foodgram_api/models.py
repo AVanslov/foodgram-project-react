@@ -60,10 +60,17 @@ class Recipe(TitleModel):
         Ingredient,
         through='RecipeIngredients',
     )
+    pub_date = models.DateTimeField(
+        'Дата публикации',
+        auto_now_add=True,
+    )
 
 
 class RecipeIngredients(models.Model):
-    """Промежуточная таблица таблиц Рецепты и ингредиенты."""
+    """
+    Промежуточная таблица Рецептов и ингредиентов
+    с добавочным столбцом Количество.
+    """
 
     recipe = models.ForeignKey(
         Recipe,
