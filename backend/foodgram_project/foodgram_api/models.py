@@ -8,13 +8,16 @@ NUMBER_OF_VISIBLE_CHATACTERS = 15
 class TitleModel(models.Model):
     """Модель абстрактного класса Заголовок."""
 
-    title = models.CharField(
+    name = models.CharField(
         'Заголовок',
         max_length=TITLE_MAX_LENGHT,
     )
 
     class Meta:
         abstract = True
+
+    def __str__(self):
+        return self.name
 
 
 class Tag(TitleModel):
@@ -30,20 +33,22 @@ class Tag(TitleModel):
         ),
     )
 
-
-class IngredientType(TitleModel):
-    """Модель таблицы Единицы измерения ингредиентов."""
-
-    pass
+    class Meta:
+        verbose_name = 'Тег'
+        verbose_name_plural = 'Теги'
 
 
 class Ingredient(TitleModel):
     """Модель таблицы Ингрединты."""
 
-    ingredient_type = models.OneToOneField(
-        IngredientType,
-        on_delete=models.CASCADE,
+    measurement_unit = models.TextField(
+        'Единицы измерения',
+        default=None,
     )
+
+    class Meta:
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
 
 
 class Recipe(TitleModel):
@@ -55,18 +60,27 @@ class Recipe(TitleModel):
         on_delete=models.CASCADE,
         related_name='recipes',
     )
-    tags = models.ManyToManyField(Tag)
-    ingredients = models.ManyToManyField(
+    tag = models.ManyToManyField(
+        Tag,
+        through='RecipeTag',
+        related_name='recipes',
+    )
+    ingredient = models.ManyToManyField(
         Ingredient,
-        through='RecipeIngredients',
+        through='RecipeIngredient',
+        related_name='recipes',
     )
     pub_date = models.DateTimeField(
         'Дата публикации',
         auto_now_add=True,
     )
 
+    class Meta:
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
 
-class RecipeIngredients(models.Model):
+
+class RecipeIngredient(models.Model):
     """
     Промежуточная таблица Рецептов и ингредиентов
     с добавочным столбцом Количество.
@@ -83,3 +97,26 @@ class RecipeIngredients(models.Model):
     quantity = models.FloatField(
         'Количество',
     )
+
+    class Meta:
+        verbose_name = 'Количество ингредиента в рецепте'
+        verbose_name_plural = 'Количество ингрединтов в рецептах' 
+
+
+class RecipeTag(models.Model):
+    """
+    Промежуточная таблица Рецептов и тегов.
+    """
+
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE
+    )
+    tag = models.ForeignKey(
+        Tag,
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        verbose_name = 'Рецепт и его Теги'
+        verbose_name_plural = 'Рецепт и его Теги'
