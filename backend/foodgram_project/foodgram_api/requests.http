@@ -1,0 +1,30 @@
+POST http://127.0.0.1:8000/auth/users/
+content-type: application/json
+
+{
+    "username": "user-1",
+    "password": ";fsjasofandpDF"
+}
+
+###
+
+POST http://127.0.0.1:8000/auth/jwt/create/
+content-type: application/json
+
+{
+    "username": "user-1",
+    "password": ";fsjasofandpDF"
+}
+
+###
+
+GET http://127.0.0.1:8000/api/users/
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzExOTE5NjA5LCJqdGkiOiIwNGVkY2ViZjdmYmM0YWFhYTU1YjY3ZDYwMzIwNzZlNSIsInVzZXJfaWQiOjJ9.t-sA78S6mONlBenFeHPgAjQ1HsFD0zDHyvBOIWUHj4Y
+
+{
+    "username": "user-1",
+    "password": ";fsjasofandpDF"
+}
+
+###
