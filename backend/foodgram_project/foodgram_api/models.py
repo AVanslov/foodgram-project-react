@@ -32,6 +32,10 @@ class Tag(TitleModel):
             'цифры, дефис и подчёркивание.'
         ),
     )
+    color = models.CharField(
+        max_length=16,
+        default='#ff0000',
+    )
 
     class Meta:
         verbose_name = 'Тег'
@@ -60,12 +64,18 @@ class Recipe(TitleModel):
         on_delete=models.CASCADE,
         related_name='recipes',
     )
-    tag = models.ManyToManyField(
+    image = models.ImageField(
+        'Фото рецепта',
+        upload_to='recipe/images/',
+        null=True,
+        default=None,
+    )
+    tags = models.ManyToManyField(
         Tag,
         through='RecipeTag',
         related_name='recipes',
     )
-    ingredient = models.ManyToManyField(
+    ingredients = models.ManyToManyField(
         Ingredient,
         through='RecipeIngredient',
         related_name='recipes',
