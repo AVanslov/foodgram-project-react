@@ -28,3 +28,30 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 }
 
 ###
+
+POST http://127.0.0.1:8000/api/recipes/
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzExOTE5NjA5LCJqdGkiOiIwNGVkY2ViZjdmYmM0YWFhYTU1YjY3ZDYwMzIwNzZlNSIsInVzZXJfaWQiOjJ9.t-sA78S6mONlBenFeHPgAjQ1HsFD0zDHyvBOIWUHj4Y
+
+{
+    "name": "test-recipe-1",
+    "image": "",
+    "tags": [
+        1,
+    ],
+    "ingredients": [
+        {"1": 5},
+        {"2": 5},
+    ],
+    "text": "Какое-то описание великолепного рецепта.",
+    "cooking_time": 60,
+}
+
+###
+
+
+GET http://127.0.0.1:8000/api/recipes/
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzExOTE5NjA5LCJqdGkiOiIwNGVkY2ViZjdmYmM0YWFhYTU1YjY3ZDYwMzIwNzZlNSIsInVzZXJfaWQiOjJ9.t-sA78S6mONlBenFeHPgAjQ1HsFD0zDHyvBOIWUHj4Y
+
+###

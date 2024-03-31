@@ -5,6 +5,7 @@ from django.urls import path, include
 
 from foodgram_api.views import (
     user_list,
+    recipe_list,
 )
 
 urlpatterns = [
@@ -12,6 +13,7 @@ urlpatterns = [
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.jwt')),
     path('api/users/', user_list),
+    path('api/recipes/', recipe_list),
 ]
 
 if settings.DEBUG:

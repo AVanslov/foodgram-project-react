@@ -84,6 +84,15 @@ class Recipe(TitleModel):
         'Дата публикации',
         auto_now_add=True,
     )
+    text = models.TextField(
+        'Описание рецепта',
+        default='',
+        max_length=3600,
+    )
+    cooking_time = models.IntegerField(
+        'Время приготовления в минутах',
+        default=60,
+    )
 
     class Meta:
         verbose_name = 'Рецепт'
@@ -130,3 +139,53 @@ class RecipeTag(models.Model):
     class Meta:
         verbose_name = 'Рецепт и его Теги'
         verbose_name_plural = 'Рецепт и его Теги'
+
+
+# class UserRecipeFavorite(models.Model):
+#     """
+#     Таблица избранных рецептов пользователей.
+#     """
+#     who_added_recipe_to_favorite = models.ForeignKey(
+#         User,
+#         verbose_name='Пользователь',
+#         on_delete=models.CASCADE,
+#         related_name='recipes',
+#     )
+#     recipe = models.ForeignKey(
+#         Recipe,
+#         on_delete=models.CASCADE
+#     )
+#     is_favorite = models.BooleanField(
+#         default=False,
+#     )
+
+#     class Meta:
+#         verbose_name = 'Пользователь и его в избранный рецепт'
+#         verbose_name_plural = 'Пользователи и его избранные рецепты'
+
+
+# class UserRecipeShoppingCart(models.Model):
+#     """
+#     Таблица избранных рецептов пользователей.
+#     """
+#     who_added_recipe_to_shopping_cart = models.ForeignKey(
+#         User,
+#         verbose_name='Пользователь',
+#         on_delete=models.CASCADE,
+#         related_name='recipes',
+#     )
+#     recipe = models.ForeignKey(
+#         Recipe,
+#         on_delete=models.CASCADE
+#     )
+#     is_in_shopping_cart = models.BooleanField(
+#         default=False,
+#     )
+
+#     class Meta:
+#         verbose_name = (
+#             'Пользователь и рецепт в его списке покупок'
+#         )
+#         verbose_name_plural = (
+#             'Пользователь и рецепты в его списке покупок'
+#         )

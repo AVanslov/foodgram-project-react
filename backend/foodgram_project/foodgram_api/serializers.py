@@ -49,11 +49,24 @@ class TagSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class RecipeIngredientSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = RecipeIngredient
+        fields = '__all__'
+
+
 class IngredientSerializer(serializers.ModelSerializer):
+    quantity = RecipeIngredientSerializer(many=False, required=True)
 
     class Meta:
         model = Ingredient
-        fields = '__all__'
+        fields = (
+            'id',
+            'name',
+            'measurement_unit',
+            'quantity',
+        )
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -89,7 +102,8 @@ class RecipeSerializer(serializers.ModelSerializer):
                 **ingredient
             )
             RecipeIngredient.objects.create(
-                ingredient=current_ingredient, recipe=recipe
+                ingredient=current_ingredient,
+                recipe=recipe,
+                quantity=ingredient['quantity'],
             )
         return recipe
-    
