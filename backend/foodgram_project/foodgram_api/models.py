@@ -1,5 +1,8 @@
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import UniqueConstraint
+
+User = get_user_model()
 
 TITLE_MAX_LENGHT = 128
 NUMBER_OF_VISIBLE_CHATACTERS = 15
@@ -89,9 +92,9 @@ class Recipe(TitleModel):
         default='',
         max_length=3600,
     )
-    cooking_time = models.IntegerField(
-        'Время приготовления в минутах',
-        default=60,
+    cooking_time = models.PositiveSmallIntegerField(
+        verbose_name='Время приготовления в минутах',
+        help_text='Введите время приготовления в минутах',
     )
 
     class Meta:
@@ -119,7 +122,7 @@ class RecipeIngredient(models.Model):
 
     class Meta:
         verbose_name = 'Количество ингредиента в рецепте'
-        verbose_name_plural = 'Количество ингрединтов в рецептах' 
+        verbose_name_plural = 'Количество ингрединтов в рецептах'
 
 
 class RecipeTag(models.Model):
@@ -141,51 +144,75 @@ class RecipeTag(models.Model):
         verbose_name_plural = 'Рецепт и его Теги'
 
 
-# class UserRecipeFavorite(models.Model):
-#     """
-#     Таблица избранных рецептов пользователей.
-#     """
-#     who_added_recipe_to_favorite = models.ForeignKey(
-#         User,
-#         verbose_name='Пользователь',
-#         on_delete=models.CASCADE,
-#         related_name='recipes',
-#     )
-#     recipe = models.ForeignKey(
-#         Recipe,
-#         on_delete=models.CASCADE
-#     )
-#     is_favorite = models.BooleanField(
-#         default=False,
-#     )
+class Follow(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="follower",
+        verbose_name="Follower",
+    )
+    following = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="following",
+        verbose_name="Following",
+    )
 
-#     class Meta:
-#         verbose_name = 'Пользователь и его в избранный рецепт'
-#         verbose_name_plural = 'Пользователи и его избранные рецепты'
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=["user", "following"], name="unique_follow"
+            ),
+        ]
+        verbose_name = 'Подписчик'
+        verbose_name_plural = 'Подписчики'
 
 
-# class UserRecipeShoppingCart(models.Model):
-#     """
-#     Таблица избранных рецептов пользователей.
-#     """
-#     who_added_recipe_to_shopping_cart = models.ForeignKey(
-#         User,
-#         verbose_name='Пользователь',
-#         on_delete=models.CASCADE,
-#         related_name='recipes',
-#     )
-#     recipe = models.ForeignKey(
-#         Recipe,
-#         on_delete=models.CASCADE
-#     )
-#     is_in_shopping_cart = models.BooleanField(
-#         default=False,
-#     )
+class Favorite(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='favorite_recipes',
+        verbose_name='User',
+    )
+    favorite_recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='favorited_by',
+        verbose_name='Favorite Recipe',
+    )
 
-#     class Meta:
-#         verbose_name = (
-#             'Пользователь и рецепт в его списке покупок'
-#         )
-#         verbose_name_plural = (
-#             'Пользователь и рецепты в его списке покупок'
-#         )
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=['user', 'favorite_recipe'],
+                name='unique_favorite_recipe',
+            ),
+        ]
+        verbose_name = 'Favorite Recipe List'
+        verbose_name_plural = 'Favorite Recipe Lists'
+
+
+class ShoppingCart(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='in_cart',
+        verbose_name='User',
+    )
+    recipe_in_cart = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='put_in_cart_by',
+        verbose_name='Recipe in Shopping Cart',
+    )
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=['user', 'recipe_in_cart'],
+                name='unique_recipe_in_cart',
+            ),
+        ]
+        verbose_name = 'Список покупок'
+        verbose_name_plural = 'Списки покупок'
