@@ -65,7 +65,7 @@ class Recipe(TitleModel):
         User,
         verbose_name='Автор рецепта',
         on_delete=models.CASCADE,
-        related_name='recipes',
+        related_name='Author',
     )
     image = models.ImageField(
         'Фото рецепта',
@@ -76,12 +76,12 @@ class Recipe(TitleModel):
     tags = models.ManyToManyField(
         Tag,
         through='RecipeTag',
-        related_name='recipes',
+        related_name='Tags',
     )
     ingredients = models.ManyToManyField(
         Ingredient,
         through='RecipeIngredient',
-        related_name='recipes',
+        related_name='Ingredients',
     )
     pub_date = models.DateTimeField(
         'Дата публикации',
@@ -100,6 +100,7 @@ class Recipe(TitleModel):
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
+        ordering = ['-pub_date']
 
 
 class RecipeIngredient(models.Model):
