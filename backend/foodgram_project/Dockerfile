@@ -10,10 +10,12 @@ RUN pip install -r requirements.txt --no-cache-dir
 
 COPY . .
 
-RUN python3 manage.py makemigrations
+# RUN python manage.py makemigrations
 
-RUN python3 manage.py migrate
+# RUN python manage.py migrate
 
-RUN python3 manage.py collectstatic
+# RUN python manage.py collectstatic
+
+# RUN cp -r /app/collected_static/. /backend_static/static/
 
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "foodgram_project.wsgi"]

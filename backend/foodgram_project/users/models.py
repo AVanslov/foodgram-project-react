@@ -9,13 +9,9 @@ from django.db import models
 class UserManager(BaseUserManager):
     def create_user(self, email, username, password, **kwargs):
         if not email:
-            raise ValueError(
-                'Адрес электронное почты обязателен для заполнения'
-            )
+            raise ValueError('Users must have an email address')
         if not username:
-            raise ValueError(
-                'Имя пользователя обязательно для заполнения'
-            )
+            raise ValueError('Users must have an username')
 
         user = self.model(
             email=self.normalize_email(email), username=username, **kwargs
@@ -48,16 +44,16 @@ class User(AbstractBaseUser, PermissionsMixin):
     ]
 
     first_name = models.CharField(
-        verbose_name='Имя', max_length=30, blank=True
+        verbose_name='first name', max_length=30, blank=True
     )
     last_name = models.CharField(
-        verbose_name='Фамилия', max_length=150, blank=True
+        verbose_name='last name', max_length=150, blank=True
     )
     username = models.CharField(
-        verbose_name='имя пользователя', max_length=30, unique=True
+        verbose_name='username', max_length=30, unique=True
     )
     email = models.EmailField(
-        verbose_name='адрес электронной почты', max_length=255, unique=True
+        verbose_name='email address', max_length=255, unique=True
     )
 
     role = models.CharField(
@@ -68,7 +64,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(
         'staff status',
         default=False,
-        help_text='Can a user log in to this website as an administrator?',
+        help_text="Can a user log in to this website as an administrator?",
     )
 
     objects = UserManager()
