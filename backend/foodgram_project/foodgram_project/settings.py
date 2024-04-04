@@ -14,12 +14,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('TOKEN')
-#'django-insecure-q@x)vzjru^$$t6en2e9u0$t(cl*9(l_isc*f%q)4gd$v2p^2+o'
+# SECRET_KEY = 'django-insecure-q@x)vzjru^$$t6en2e9u0$t(cl*9(l_isc*f%q)4gd$v2p^2+o'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['*']
 # ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default=['*'])
 
 
@@ -86,6 +86,12 @@ DATABASES = {
     }
 }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': '/data/db.sqlite3',
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
