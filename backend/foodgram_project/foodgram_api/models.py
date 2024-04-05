@@ -69,19 +69,19 @@ class Recipe(TitleModel):
     )
     image = models.ImageField(
         'Фото рецепта',
-        upload_to='recipe/images/',
-        null=True,
+        upload_to='image/',
+        null=False,
         default=None,
     )
     tags = models.ManyToManyField(
         Tag,
         through='RecipeTag',
-        related_name='Tags',
+        related_name='recipes',
     )
     ingredients = models.ManyToManyField(
         Ingredient,
         through='RecipeIngredient',
-        related_name='Ingredients',
+        verbose_name='Ingredients',
     )
     pub_date = models.DateTimeField(
         'Дата публикации',
@@ -192,8 +192,8 @@ class Favorite(models.Model):
                 name='unique_favorite_recipe',
             ),
         ]
-        verbose_name = 'Favorite Recipe List'
-        verbose_name_plural = 'Favorite Recipe Lists'
+        verbose_name = 'Избранный рецепт'
+        verbose_name_plural = 'Избранные рецепты'
 
 
 class ShoppingCart(models.Model):

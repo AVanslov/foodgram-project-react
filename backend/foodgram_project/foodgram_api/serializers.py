@@ -14,6 +14,7 @@ from .models import (
     Ingredient,
     RecipeIngredient,
     Recipe,
+    RecipeTag,
     ShoppingCart,
     Tag,
 )
@@ -124,7 +125,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'name',
-            'measurement_unit'
+            'measurement_unit',
             'quantity',
         )
 
@@ -168,7 +169,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         RecipeIngredient.objects.filter(recipe=instance).delete()
         tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('ingredientinrecipe_set')
+        ingredients = validated_data.pop('recipeingredient_set')
         instance.tags.set(tags)
         Recipe.objects.filter(pk=instance.pk).update(**validated_data)
         for ingredient in ingredients:
@@ -179,7 +180,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             RecipeIngredient.objects.create(
                 ingredient=ingredient['id'],
                 recipe=instance,
-                amount=ingredient['quantity'],
+                quantity=ingredient['quantity'],
             )
         instance.refresh_from_db()
         return instance

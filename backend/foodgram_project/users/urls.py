@@ -6,9 +6,9 @@ from .views import UserViewSet
 
 router = DefaultRouter()
 
-router.register("users", UserViewSet)
+router.register('users', UserViewSet)
 
 urlpatterns = [
-    path("", include("djoser.urls")),
-    path("auth/", include("djoser.urls.authtoken")),
+    path('', include('djoser.urls')),
+    path('auth/', include('djoser.urls.authtoken')),
 ]

@@ -36,6 +36,7 @@ class RecipeAdmin(admin.ModelAdmin):
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = (
+        'id',
         'name',
         'slug',
     )

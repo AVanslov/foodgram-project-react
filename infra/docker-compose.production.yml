@@ -16,7 +16,8 @@ services:
       - .env
 
   backend:
-    build: ../backend/foodgram_project/
+    image: 
+    # build: ../backend/foodgram_project/
     volumes:
       - static_value:/code/static/
       - media_value:/code/media/
@@ -26,10 +27,10 @@ services:
       - .env
 
   frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
-    # command: cp -r /app/result_build/. /app/result_build/
+    image: 
+    # build:
+    #   context: ../frontend
+    #   dockerfile: Dockerfile
     volumes:
       - frontend_value:/app/result_build/
     depends_on:

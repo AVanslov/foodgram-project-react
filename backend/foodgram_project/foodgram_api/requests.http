@@ -1,56 +1,68 @@
-POST http://127.0.0.1:8000/auth/users/
+POST http://localhost/api/users/
 content-type: application/json
 
 {
-    "username": "user-1",
-    "password": ";fsjasofandpDF"
+    "email": "vpupkin@yandex.ru",
+    "username": "vasya.pupkin",
+    "first_name": "Вася",
+    "last_name": "Пупкин",
+    "password": "Qwerty123"
 }
 
 ###
 
-POST http://127.0.0.1:8000/auth/jwt/create/
+POST http://localhost/api/auth/token/login/
 content-type: application/json
 
 {
-    "username": "user-1",
-    "password": ";fsjasofandpDF"
+    "email": "vpupkin@yandex.ru",
+    "password": "Qwerty123"
 }
 
 ###
 
-GET http://127.0.0.1:8000/api/users/
+GET http://localhost/api/recipes/
 content-type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzExOTE5NjA5LCJqdGkiOiIwNGVkY2ViZjdmYmM0YWFhYTU1YjY3ZDYwMzIwNzZlNSIsInVzZXJfaWQiOjJ9.t-sA78S6mONlBenFeHPgAjQ1HsFD0zDHyvBOIWUHj4Y
-
-{
-    "username": "user-1",
-    "password": ";fsjasofandpDF"
-}
+Authorization: Token b40e4147c346244886039c71b106748a2f9dd3d3
 
 ###
 
-POST http://127.0.0.1:8000/api/recipes/
+GET http://localhost/api/recipes/5
 content-type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzExOTE5NjA5LCJqdGkiOiIwNGVkY2ViZjdmYmM0YWFhYTU1YjY3ZDYwMzIwNzZlNSIsInVzZXJfaWQiOjJ9.t-sA78S6mONlBenFeHPgAjQ1HsFD0zDHyvBOIWUHj4Y
-
-{
-    "name": "test-recipe-1",
-    "image": "",
-    "tags": [
-        1,
-    ],
-    "ingredients": [
-        
-    ],
-    "text": "Какое-то описание великолепного рецепта.",
-    "cooking_time": 60,
-}
+Authorization: Token b40e4147c346244886039c71b106748a2f9dd3d3
 
 ###
 
-
-GET http://127.0.0.1:8000/api/recipes/
+GET http://localhost/api/ingredients/
 content-type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzExOTE5NjA5LCJqdGkiOiIwNGVkY2ViZjdmYmM0YWFhYTU1YjY3ZDYwMzIwNzZlNSIsInVzZXJfaWQiOjJ9.t-sA78S6mONlBenFeHPgAjQ1HsFD0zDHyvBOIWUHj4Y
+Authorization: Token b40e4147c346244886039c71b106748a2f9dd3d3
+
+###
+
+GET http://localhost/api/ingredients/1/
+content-type: application/json
+Authorization: Token b40e4147c346244886039c71b106748a2f9dd3d3
+
+###
+
+POST http://localhost/api/recipes/
+content-type: application/json
+Authorization: Token b40e4147c346244886039c71b106748a2f9dd3d3
+
+{
+  "ingredients": [
+    {
+      "id": 1,
+      "quantity": 50
+    }
+  ],
+  "tags": [
+    1
+  ],
+  "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAgMAAABieywaAAAACVBMVEUAAAD///9fX1/S0ecCAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAACklEQVQImWNoAAAAggCByxOyYQAAAABJRU5ErkJggg==",
+  "name": "string",
+  "text": "string",
+  "cooking_time": 1
+}
 
 ###
