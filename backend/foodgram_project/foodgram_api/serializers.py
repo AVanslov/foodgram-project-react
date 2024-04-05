@@ -123,9 +123,9 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         model = RecipeIngredient
         fields = (
             'id',
-            'quantity',
             'name',
             'measurement_unit'
+            'quantity',
         )
 
     def to_representation(self, instance):
@@ -138,7 +138,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     author = AuthorSerializer(read_only=True)
     ingredients = RecipeIngredientSerializer(
-        source='ingredientinrecipe_set',
+        source='recipeingredient_set',
         many=True,
     )
     image = Base64ImageField(required=False)
@@ -148,7 +148,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data):
         tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('ingredientinrecipe_set')
+        ingredients = validated_data.pop('recipeingredient_set')
         user = self.context['request'].user
         recipe = Recipe.objects.create(author=user, **validated_data)
         recipe.tags.set(tags)
@@ -160,7 +160,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             RecipeIngredient.objects.create(
                 ingredient=ingredient['id'],
                 recipe=recipe,
-                amount=ingredient['quantity'],
+                quantity=ingredient['quantity'],
             )
         return recipe
 

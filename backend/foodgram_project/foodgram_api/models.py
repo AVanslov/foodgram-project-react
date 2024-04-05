@@ -109,21 +109,23 @@ class RecipeIngredient(models.Model):
     с добавочным столбцом Количество.
     """
 
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE
-    )
     ingredient = models.ForeignKey(
         Ingredient,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='Ингредиенты в рецепте',
     )
-    quantity = models.FloatField(
-        'Количество',
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name='Рецепт',
+    )
+    quantity = models.PositiveSmallIntegerField(
+        'Колличество ингредиента',
     )
 
     class Meta:
-        verbose_name = 'Количество ингредиента в рецепте'
-        verbose_name_plural = 'Количество ингрединтов в рецептах'
+        verbose_name = 'Колличество ингредиента в рецепте'
+        verbose_name_plural = 'Колличество ингредиентов в рецепте'
 
 
 class RecipeTag(models.Model):
