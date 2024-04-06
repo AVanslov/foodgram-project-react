@@ -5,22 +5,14 @@ from pathlib import Path
 
 load_dotenv()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+SECRET_KEY = os.getenv('TOKEN', 'default-value')
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
+DEBUG = False
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('TOKEN')
-# SECRET_KEY = 'django-insecure-q@x)vzjru^$$t6en2e9u0$t(cl*9(l_isc*f%q)4gd$v2p^2+o'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ['*',]
-# ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default=['*'])
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default=['*',]).split(',')
+print(ALLOWED_HOSTS)
 
 
 # Application definition

@@ -29,7 +29,6 @@ services:
     build:
       context: ../frontend
       dockerfile: Dockerfile
-    # command: cp -r /app/result_build/. /app/result_build/
     volumes:
       - frontend_value:/app/result_build/
     depends_on:
