@@ -30,7 +30,7 @@ services:
       - .env
     image: avanslov/foodgram_frontend
     volumes:
-      - frontend_value_prodaction:/app/result_build/
+      - frontend_value_prodaction:/app/result_build/build
     depends_on:
       - backend
   nginx:
