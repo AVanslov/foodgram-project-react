@@ -4,10 +4,10 @@ from .models import (
     Favorite,
     Follow,
     Ingredient,
-    RecipeIngredient,
     Recipe,
+    RecipeIngredient,
     ShoppingCart,
-    Tag
+    Tag,
 )
 
 

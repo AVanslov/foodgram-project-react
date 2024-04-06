@@ -5,11 +5,11 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     FavoriteViewSet,
     FollowViewSet,
+    get_list,
     IngredientViewSet,
     RecipeViewSet,
     ShoppingCartViewSet,
     TagViewSet,
-    get_list
 )
 
 router_v1 = DefaultRouter()
