@@ -35,3 +35,5 @@ webcolors==1.13
 python-dotenv==0.10.1
 django-filter==24.2
 psycopg2-binary==2.9.9
+flake8==6.0.0
+flake8-isort==6.0.0

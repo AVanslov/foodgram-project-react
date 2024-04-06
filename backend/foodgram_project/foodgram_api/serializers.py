@@ -14,7 +14,6 @@ from .models import (
     Ingredient,
     RecipeIngredient,
     Recipe,
-    RecipeTag,
     ShoppingCart,
     Tag,
 )
