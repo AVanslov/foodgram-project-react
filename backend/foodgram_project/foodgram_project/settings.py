@@ -11,8 +11,6 @@ SECRET_KEY = os.getenv('TOKEN', 'default-value')
 DEBUG = False
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='158.160.16.147,127.0.0.1,localhost,foodgramius.ddns.net').split(',')
-print(ALLOWED_HOSTS)
-
 
 # Application definition
 
