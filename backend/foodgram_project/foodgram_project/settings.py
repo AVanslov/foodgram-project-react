@@ -10,7 +10,7 @@ SECRET_KEY = os.getenv('TOKEN', 'default-value')
 
 DEBUG = False
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default=['*',]).split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='*,').split(',')
 print(ALLOWED_HOSTS)
 
 
