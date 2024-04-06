@@ -10,6 +10,6 @@ RUN pip install -r requirements.txt --no-cache-dir
 
 COPY . .
 
-RUN python3 manage.py collectstatic
+# RUN python3 manage.py collectstatic
 
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "foodgram_project.wsgi"]
