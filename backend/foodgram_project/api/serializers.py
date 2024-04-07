@@ -38,14 +38,7 @@ class AuthorSerializer(UserSerializer):
 
     class Meta:
         model = User
-        fields = [
-            'email',
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'is_subscribed',
-        ]
+        fields = ['is_subscribed', *UserSerializer.Meta.fields]
 
     def get_is_subscribed(self, obj):
         request = self.context['request']
@@ -155,7 +148,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     'The amount of ingredients must be greater than 0.'
                 )
-            RecipeIngredient.objects.create(
+            RecipeIngredient.objects.bulk_create(
                 ingredient=ingredient['id'],
                 recipe=recipe,
                 amount=ingredient['amount'],
@@ -173,13 +166,12 @@ class RecipeSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     'The amount of ingredients must be greater than 0.'
                 )
-            RecipeIngredient.objects.create(
+            RecipeIngredient.objects.bulk_create(
                 ingredient=ingredient['id'],
                 recipe=instance,
                 amount=ingredient['amount'],
             )
-        instance.refresh_from_db()
-        return instance
+        return instance.refresh_from_db()
 
     def get_is_favorited(self, obj):
         request = self.context['request']
@@ -229,28 +221,19 @@ class FollowSerializer(UserSerializer):
 
     class Meta:
         model = Follow
-        fields = [
-            'email',
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'is_subscribed',
-            'recipes',
-            'recipes_count',
-        ]
+        fields = ['is_subscribed', *UserSerializer.Meta.fields]
 
     def get_is_subscribed(self, obj):
         return obj.user.authors.filter(following=obj.following).exists()
 
-    def get_recipes(self, obj):
+    def get_recipes(self, user):
         request = self.context['request']
         recipes_limit = request.query_params.get('recipes_limit')
         if recipes_limit is None:
-            result = obj.following.recipes.all()
+            result = user.following.recipes.all()
         else:
             recipes_limit = int(request.query_params.get('recipes_limit'))
-            result = obj.following.recipes.all()[:recipes_limit]
+            result = user.following.recipes.all()[:recipes_limit]
         return RecipiesFromFollowingSerializer(result, many=True).data
 
     def validate(self, data):
