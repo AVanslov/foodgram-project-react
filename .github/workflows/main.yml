@@ -121,6 +121,7 @@ jobs:
           sudo docker compose -f docker-compose.production.yml exec backend python manage.py loaddata configured_ingredients.json
           sudo docker compose -f docker-compose.production.yml exec backend python manage.py loaddata tags.json
 
+
   # send_message:
   #   runs-on: ubuntu-latest
   #   needs: deploy
