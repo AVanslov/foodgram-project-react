@@ -133,6 +133,10 @@ class RecipeIngredient(models.Model):
 
 
 class Follow(models.Model):
+    """
+    Модель для связи между автором и подписчиком.
+    """
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
