@@ -21,7 +21,7 @@ class User(AbstractBaseUser):
         max_length=USERNAME_MAX_LENGHT,
         unique=True,
         validators=[
-            RegexValidator(regex='^[\w.@+-]+\z')
+            RegexValidator(regex=r'^[\w.@+-]+\z')
         ]
     )
     email = models.EmailField(
