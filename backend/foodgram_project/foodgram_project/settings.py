@@ -147,7 +147,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'foodgram_api.paginator.ResultsSetPagination',
+    'DEFAULT_PAGINATION_CLASS': 'api.paginator.ResultsSetPagination',
     'PAGE_SIZE': 6,
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend'
@@ -158,9 +158,9 @@ DJOSER = {
     'LOGIN_FIELD': 'email',
     'HIDE_USERS': False,
     'SERIALIZERS': {
-        'user_create': 'users.serializers.UserCreateSerializer',
-        'user': 'users.serializers.CurrentUserSerializer',
-        'current_user': 'users.serializers.CurrentUserSerializer',
+        'user_create': 'djoser.serializers.UserCreateSerializer',
+        'user': 'recipes.serializers.CurrentUserSerializer',
+        'current_user': 'recipes.serializers.CurrentUserSerializer',
         'user_delete': 'djoser.serializers.UserSerializer',
     },
     'PERMISSIONS': {
