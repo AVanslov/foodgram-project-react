@@ -115,13 +115,13 @@ class RecipeIngredient(models.Model):
         Ingredient,
         on_delete=models.CASCADE,
         verbose_name='Ингредиенты в рецепте',
-        related_name='recipes',
+        related_name='ingredient_in_recipes',
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         verbose_name='Рецепт',
-        related_name='recipes',
+        related_name='ingredients_in_recipes',
     )
     amount = models.PositiveSmallIntegerField(
         'Мера',
@@ -140,7 +140,7 @@ class Follow(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='authors',
+        related_name='followers',
         verbose_name='Подписчик',
     )
     following = models.ForeignKey(

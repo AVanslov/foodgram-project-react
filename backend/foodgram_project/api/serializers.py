@@ -43,7 +43,7 @@ class AuthorSerializer(UserSerializer):
         user = request.user
         if user.is_anonymous:
             return False
-        return user.authors.filter(following=obj).exists()
+        return user.followers.filter(following=obj).exists()
 
 
 class FavoriteRecipeSerializer(serializers.ModelSerializer):

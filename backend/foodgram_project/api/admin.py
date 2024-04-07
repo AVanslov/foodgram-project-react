@@ -67,7 +67,21 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @admin.display(empty_value=None)
     def followers(self, obj):
-        return obj.favorited_by.all().count()
+        return obj.favorites.all().count()
+
+    @admin.display(empty_value=None)
+    def tags(self, obj):
+        return ', '.join(
+            [str(tag.name) for
+                tag in obj.recipe_tags.all()]
+        )
+
+    @admin.display(empty_value=None)
+    def ingredients(self, obj):
+        return ', '.join(
+            [str(ingredient.name) for
+                ingredient in obj.recipe_ingredients.all()]
+        )
 
 
 @admin.register(Tag)
@@ -85,7 +99,7 @@ class RecipeIngredientAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'recipe',
-        'quantity'
+        'amount'
     )
     empty_value_display = '-empty-'
 
@@ -95,7 +109,7 @@ class ShoppingCartAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'user',
-        'recipe_in_cart'
+        'recipe'
     )
     empty_value_display = '-empty-'
 
@@ -115,6 +129,6 @@ class FavoriteAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'user',
-        'favorite_recipe'
+        'recipe'
     )
     empty_value_display = '-empty-'
