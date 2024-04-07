@@ -1,6 +1,4 @@
-from typing import Any
 from django.contrib import admin
-from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
 
 from .models import (
@@ -50,6 +48,7 @@ class CookongTimeListFilter(admin.SimpleListFilter):
             return queryset.filter(
                 cooking_time__gte=30,
             )
+
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
