@@ -1,4 +1,7 @@
+from typing import Any
 from django.contrib import admin
+from django.db.models.query import QuerySet
+from django.utils.translation import gettext_lazy as _
 
 from .models import (
     Favorite,
@@ -18,15 +21,42 @@ class IngredientAdmin(admin.ModelAdmin):
         'name',
         'measurement_unit',
     )
-    list_filter = ('name',)
+    list_filter = ('measurement_unit',)
     empty_value_display = '-empty-'
 
+
+class CookongTimeListFilter(admin.SimpleListFilter):
+    title = _('Время приготовления')
+    parameter_name = 'cooking_time'
+
+    def lookuos(self, request, model_admin):
+        return [
+            ('быстрые', _('быстрее 10 минут')),
+            ('средние', _('быстрее 30 минут')),
+            ('долгие', _('более 30 минут')),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == 'быстрые':
+            return queryset.filter(
+                cooking_time__lte=10
+            )
+        if self.value() == 'средние':
+            return queryset.filter(
+                cooking_time__gte=10,
+                cooking_time__lte=30,
+            )
+        if self.value() == 'долгие':
+            return queryset.filter(
+                cooking_time__gte=30,
+            )
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'author', 'followers')
-    list_filter = ('name', 'author', 'tags')
+    list_display = ('id', 'name', 'author', 'followers', 'cooking_time', 'image', 'tags', 'ingredients')
+    list_filter = [CookongTimeListFilter]
     empty_value_display = '-empty-'
+    show_facets = admin.ShowFacets.ALWAYS
 
     @admin.display(empty_value=None)
     def followers(self, obj):

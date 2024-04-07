@@ -1,5 +1,3 @@
-import io
-
 from django.contrib.auth import get_user_model
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
@@ -68,8 +66,7 @@ class FollowViewSet(viewsets.ModelViewSet):
     serializer_class = FollowSerializer
 
     def get_queryset(self):
-        user = self.request.user
-        return user.follower.all()
+        return self.request.user.follower.all()
 
     def perform_create(self, serializer):
         current_user = self.request.user
@@ -188,9 +185,8 @@ def get_list(request):
             else:
                 result[ingredient_in_cart_name] = amount_in_cart
     ingredients_list = str(result)
-    ingredients_list_bytes = io.BytesIO(ingredients_list.encode('utf-8'))
     return FileResponse(
-        ingredients_list_bytes,
+        ingredients_list,
         as_attachment=True,
         filename='list.txt'
     )

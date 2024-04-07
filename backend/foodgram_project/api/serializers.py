@@ -1,11 +1,11 @@
+import webcolors
+
 from django.contrib.auth import get_user_model
-import base64
 from django.core.files.base import ContentFile
+from django.db import transaction
+from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from django.db import transaction
-from users.serializers import UserSerializer
-import webcolors
 
 from .models import (
     Favorite,
@@ -16,18 +16,9 @@ from .models import (
     ShoppingCart,
     Tag,
 )
+from users.serializers import UserSerializer
 
 User = get_user_model()
-
-
-class Base64ImageField(serializers.ImageField):
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')
-            ext = format.split('/')[-1]
-            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
-
-        return super().to_internal_value(data)
 
 
 class Hex2NameColor(serializers.Field):
@@ -64,21 +55,21 @@ class AuthorSerializer(UserSerializer):
         return user.follower.filter(following=obj).exists()
 
 
-class FavoriteRecipeSerializer(serializers.ModelSerializer):
+class FavoriteRecipeAndShoppingCarterializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
-        source='favorite_recipe.id',
+        source='recipes.id',
         read_only=True
     )
     name = serializers.CharField(
-        source='favorite_recipe.name',
+        source='recipes.name',
         read_only=True
     )
     image = Base64ImageField(
-        source='favorite_recipe.image',
+        source='recipes.image',
         read_only=True
     )
     cooking_time = serializers.IntegerField(
-        source='favorite_recipe.cooking_time',
+        source='recipes.cooking_time',
         read_only=True
     )
 
@@ -99,17 +90,11 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = '__all__'
 
-    def to_internal_value(self, data):
-        return Tag.objects.get(id=data)
-
 
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = '__all__'
-
-    def to_internal_value(self, data):
-        return Ingredient.objects.get(id=data)
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
@@ -144,7 +129,22 @@ class RecipeSerializer(serializers.ModelSerializer):
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
-    @transaction.atomic
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'id',
+            'tags',
+            'author',
+            'ingredients',
+            'name',
+            'image',
+            'text',
+            'cooking_time',
+            'is_favorited',
+            'is_in_shopping_cart',
+        )
+
     def create(self, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('recipeingredient_set')
@@ -163,7 +163,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
         return recipe
 
-    @transaction.atomic
     def update(self, instance, validated_data):
         RecipeIngredient.objects.filter(recipe=instance).delete()
         tags = validated_data.pop('tags')
@@ -182,21 +181,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
         instance.refresh_from_db()
         return instance
-
-    class Meta:
-        model = Recipe
-        fields = (
-            'id',
-            'tags',
-            'author',
-            'ingredients',
-            'name',
-            'image',
-            'text',
-            'cooking_time',
-            'is_favorited',
-            'is_in_shopping_cart',
-        )
 
     def get_is_favorited(self, obj):
         request = self.context['request']
@@ -227,20 +211,20 @@ class RecipiesFromFollowingSerializer(RecipeSerializer):
 class FollowSerializer(UserSerializer):
     email = serializers.EmailField(source='following.email', read_only=True)
     id = serializers.PrimaryKeyRelatedField(
-        source='following.id', read_only=True
+        source='authors.id', read_only=True
     )
     username = serializers.SlugRelatedField(
         slug_field='username', read_only=True
     )
     first_name = serializers.CharField(
-        source='following.first_name', read_only=True
+        source='authors.first_name', read_only=True
     )
     last_name = serializers.CharField(
-        source='following.last_name', read_only=True
+        source='authors.last_name', read_only=True
     )
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.IntegerField(
-        source='following.recipes.count', read_only=True
+        source='authors.recipes.count', read_only=True
     )
     is_subscribed = serializers.SerializerMethodField()
 
@@ -279,23 +263,3 @@ class FollowSerializer(UserSerializer):
         if current_user != following:
             return data
         raise ValidationError('You cannot follow yourself')
-
-
-class ShoppingCartSerializer(serializers.ModelSerializer):
-    id = serializers.PrimaryKeyRelatedField(
-        source='recipe_in_cart.id', read_only=True
-    )
-    name = serializers.CharField(source='recipe_in_cart.name', read_only=True)
-    image = Base64ImageField(source='recipe_in_cart.image', read_only=True)
-    cooking_time = serializers.IntegerField(
-        source='recipe_in_cart.cooking_time', read_only=True
-    )
-
-    class Meta:
-        model = ShoppingCart
-        fields = (
-            'id',
-            'name',
-            'image',
-            'cooking_time'
-        )

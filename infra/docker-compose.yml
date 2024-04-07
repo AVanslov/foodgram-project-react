@@ -30,7 +30,7 @@ services:
       context: ../frontend
       dockerfile: Dockerfile
     volumes:
-      - frontend_value:/app/result_build/
+      - frontend_value:/app/result_build/build
     depends_on:
       - backend
   nginx:

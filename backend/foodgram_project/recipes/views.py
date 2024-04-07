@@ -1,10 +1,10 @@
 from django.contrib.auth import get_user_model
-from rest_framework import viewsets
+from djoser.views import UserViewSet
 
 from .serializers import UserSerializer
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class CustomUserViewSet(UserViewSet):
     queryset = get_user_model().objects.all()
     serializer_class = UserSerializer
     lookup_field = "username"

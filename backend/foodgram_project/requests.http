@@ -1,4 +1,4 @@
-POST http://localhost/api/users/
+POST http://foodgramius.ddns.net/api/users/
 content-type: application/json
 
 {
@@ -54,14 +54,18 @@ Authorization: Token b40e4147c346244886039c71b106748a2f9dd3d3
     {
       "id": 1,
       "quantity": 50
+    },
+    {
+      "id": 2,
+      "quantity": 100
     }
   ],
   "tags": [
     1
   ],
   "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAgMAAABieywaAAAACVBMVEUAAAD///9fX1/S0ecCAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAACklEQVQImWNoAAAAggCByxOyYQAAAABJRU5ErkJggg==",
-  "name": "string",
-  "text": "string",
+  "name": "string-1",
+  "text": "string-3",
   "cooking_time": 1
 }
 
