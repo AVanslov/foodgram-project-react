@@ -1,0 +1,29 @@
+[
+    {
+        "model": "api.ingredient",
+        "pk": 1,
+        "fields": {
+            "name": "Десерты",
+            "color": "#ff0000",
+            "slug": "Desserts"
+            }
+    },
+    {
+        "model": "api.ingredient",
+        "pk": 2,
+        "fields": {
+            "name": "Основные блюда",
+            "color": "#ff0010",
+            "slug": "main"
+            }
+    },
+    {
+        "model": "api.ingredient",
+        "pk": 3,
+        "fields": {
+            "name": "Ужин",
+            "color": "#ff0020",
+            "slug": "dinner"
+            }
+    }
+]

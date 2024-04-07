@@ -98,7 +98,7 @@ class FavoriteViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return user.favorite_recipes.all()
+        return user.favorites.all()
 
     def perform_create(self, serializer):
         current_user = self.request.user
@@ -108,7 +108,7 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         )
         return serializer.save(
             user=current_user,
-            favorite_recipe=recipe,
+            recipe=recipe,
         )
 
     @action(
@@ -121,7 +121,7 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         get_object_or_404(
             Favorite,
             user=current_user,
-            favorite_recipe=recipe
+            recipe=recipe
         ).delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -132,10 +132,10 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        cart = user.in_cart.all()
+        cart = user.purchases.all()
         result = {}
         for recipe in cart:
-            ingredients = recipe.recipe_in_cart.ingredientinrecipe_set.all()
+            ingredients = recipe.recipe.ingredientinrecipe_set.all()
             for ingredient in ingredients:
                 amount_in_cart = ingredient.amount
                 ingredient_in_cart_id = ingredient.ingredient.id
@@ -151,7 +151,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
         return serializer.save(
             user=current_user,
-            recipe_in_cart=recipe
+            recipe=recipe
         )
 
     @action(
@@ -164,7 +164,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         get_object_or_404(
             ShoppingCart,
             user=current_user,
-            recipe_in_cart=recipe
+            recipe=recipe
         ).delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -176,7 +176,7 @@ def get_list(request):
     cart = user.in_cart.all()
     result = {}
     for recipe in cart:
-        ingredients = recipe.recipe_in_cart.ingredientinrecipe_set.all()
+        ingredients = recipe.recipe.recipeingredient_set.all()
         for ingredient in ingredients:
             amount_in_cart = ingredient.amount
             ingredient_in_cart_name = ingredient.ingredient.name

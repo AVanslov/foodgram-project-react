@@ -121,10 +121,10 @@ class RecipeIngredient(models.Model):
         Recipe,
         on_delete=models.CASCADE,
         verbose_name='Рецепт',
-        related_name='ingredients',
+        related_name='recipes',
     )
-    quantity = models.PositiveSmallIntegerField(
-        'Колличество ингредиента',
+    amount = models.PositiveSmallIntegerField(
+        'Мера',
     )
 
     class Meta:
@@ -160,14 +160,11 @@ class UserRecipeAbstractModel(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='recipes',
         verbose_name='Пользователь',
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='recipes',
-        verbose_name='Избранный рецепт',
     )
 
     class Meta:
@@ -181,6 +178,13 @@ class UserRecipeAbstractModel(models.Model):
 
 
 class Favorite(UserRecipeAbstractModel):
+    user = models.ForeignKey(
+        related_name='favorites',
+    )
+    recipe = models.ForeignKey(
+        related_name='favorites',
+        verbose_name='Избранный рецепт',
+    )
 
     class Meta:
 
@@ -189,6 +193,13 @@ class Favorite(UserRecipeAbstractModel):
 
 
 class ShoppingCart(UserRecipeAbstractModel):
+    user = models.ForeignKey(
+        related_name='purchases',
+    )
+    recipe = models.ForeignKey(
+        related_name='purchases',
+        verbose_name='Рецепт в списке покупок',
+    )
 
     class Meta:
 

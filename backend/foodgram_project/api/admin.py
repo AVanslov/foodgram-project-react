@@ -29,7 +29,7 @@ class CookongTimeListFilter(admin.SimpleListFilter):
     title = _('Время приготовления')
     parameter_name = 'cooking_time'
 
-    def lookuos(self, request, model_admin):
+    def lookups(self, request, model_admin):
         return [
             ('быстрые', _('быстрее 10 минут')),
             ('средние', _('быстрее 30 минут')),
@@ -53,10 +53,18 @@ class CookongTimeListFilter(admin.SimpleListFilter):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'author', 'followers', 'cooking_time', 'image', 'tags', 'ingredients')
+    list_display = (
+        'id',
+        'name',
+        'author',
+        'followers',
+        'cooking_time',
+        'image',
+        'tags',
+        'ingredients'
+    )
     list_filter = [CookongTimeListFilter]
     empty_value_display = '-empty-'
-    show_facets = admin.ShowFacets.ALWAYS
 
     @admin.display(empty_value=None)
     def followers(self, obj):
