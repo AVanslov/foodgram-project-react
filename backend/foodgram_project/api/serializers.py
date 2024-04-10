@@ -5,7 +5,7 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from .models import (
+from recipes.models import (
     Favorite,
     Follow,
     Ingredient,
@@ -14,9 +14,26 @@ from .models import (
     ShoppingCart,
     Tag,
 )
-from recipes.serializers import UserSerializer
+from .serializers import UserSerializer
 
-User = get_user_model()
+from djoser.serializers import UserSerializer
+from rest_framework import serializers
+
+from recipes.models import User
+
+
+class CurrentUserSerializer(UserSerializer):
+    is_subscribed = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+
+    def get_is_subscribed(self, obj):
+        request = self.context['request']
+        user = request.user
+        if user.is_anonymous:
+            return False
+        return user.follower.filter(following=obj).exists()
 
 
 class Hex2NameColor(serializers.Field):

@@ -3,6 +3,7 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
+    CustomUserViewSet,
     FavoriteViewSet,
     FollowViewSet,
     get_list,
@@ -40,6 +41,7 @@ router.register(
     r'users/subscriptions', FollowViewSet, basename='subscriptions'
 )
 
+router.register('users', CustomUserViewSet)
 
 urlpatterns = [
     path(
@@ -48,4 +50,5 @@ urlpatterns = [
         name='download_shopping_cart',
     ),
     path('', include(router.urls)),
+    path('auth/', include('djoser.urls.authtoken')),
 ]

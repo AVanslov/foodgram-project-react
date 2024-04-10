@@ -69,16 +69,16 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = [CookongTimeListFilter]
     empty_value_display = '-empty-'
 
-    @admin.display(empty_value=None)
+    @admin.display(description='Подписчики', empty_value=None)
     def followers(self, recipe):
         return recipe.favorites.all().count()
 
-    @admin.display(empty_value=None)
+    @admin.display(description='Теги', empty_value=None)
     def tags(self, recipe):
         for tag in recipe.recipe_tags.all():
             return mark_safe(tag.name)[:50] + '<br>'
 
-    @admin.display(empty_value=None)
+    @admin.display(description='Ингредиенты', empty_value=None)
     def ingredients(self, recipe):
         for ingredient in recipe.recipe_ingredients.all():
             return (
