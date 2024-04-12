@@ -11,13 +11,13 @@ EMAIL_MAX_LENGHT = 254
 class User(AbstractBaseUser):
 
     first_name = models.CharField(
-        verbose_name='first name', max_length=FIRSTNAME_MAX_LENGHT, blank=True
+        verbose_name='Имя', max_length=FIRSTNAME_MAX_LENGHT,
     )
     last_name = models.CharField(
-        verbose_name='last name', max_length=LASTNAME_MAX_LENGHT, blank=True
+        verbose_name='Фамилия', max_length=LASTNAME_MAX_LENGHT,
     )
     username = models.CharField(
-        verbose_name='username',
+        verbose_name='Пользователь',
         max_length=USERNAME_MAX_LENGHT,
         unique=True,
         validators=[
@@ -25,7 +25,7 @@ class User(AbstractBaseUser):
         ]
     )
     email = models.EmailField(
-        verbose_name='email address', max_length=EMAIL_MAX_LENGHT, unique=True
+        verbose_name='Адрес электронной почты', max_length=EMAIL_MAX_LENGHT, unique=True
     )
 
     USERNAME_FIELD = 'username'
@@ -33,18 +33,18 @@ class User(AbstractBaseUser):
     REQUIRED_FIELDS = ['email', 'first_name', 'last_name']
 
     class Meta:
-        verbose_name = 'User'
-        verbose_name_plural = 'Users'
-        ordering = ('-username',)
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+        ordering = ('username',)
 
 
-from django.contrib.auth import get_user_model
+# from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import UniqueConstraint
 from django_extensions.validators import HexValidator
 
-User = get_user_model()
+# User = get_user_model()
 
 NAME_MAX_LENGHT = 200
 SLUG_MAX_LENGHT = 200

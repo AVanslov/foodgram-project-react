@@ -12,11 +12,51 @@ from .models import (
     User,
 )
 
+
+class OnlyWithFollowersOrFollowingsListFilter(admin.SimpleListFilter):
+    title = ('Фильтр по наличию подписиков и подписок')
+    # parameter_name = 'follower'
+
+    def lookups(self, request, model_admin):
+
+        qs = model_admin.get_queryset(request)
+        if qs.filter(
+            follower__count=0,
+        ).exists():
+            yield ('нет подписчиков', ('Число подписчиков 0'))
+        if qs.filter(
+            following__count=0,
+        ).exists():
+            yield ('нет подписок', ('Число подписок 0'))
+        else:
+            yield ('все', ('все'))
+
+
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('id', 'username', 'first_name', 'last_name')
-    list_filter = ('username', 'email')
+    list_display = (
+        'id',
+        'username',
+        'first_name',
+        'last_name',
+        'recipes_count',
+        'followers',
+        'following',
+    )
+    list_filter = [OnlyWithFollowersOrFollowingsListFilter]
     empty_value_display = '-empty-'
+
+    @admin.display(empty_value=None)
+    def recipes_count(self, user):
+        return user.recipes.all().count()
+
+    @admin.display(description='Подписчики', empty_value=None)
+    def followers(self, user):
+        return user.followers.all().count()
+
+    @admin.display(description='Подписки', empty_value=None)
+    def following(self, user):
+        return user.author.all().count()
 
 
 @admin.register(Ingredient)

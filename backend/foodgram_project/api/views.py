@@ -96,10 +96,10 @@ class FollowViewSet(viewsets.ModelViewSet):
         methods=['DELETE'],
     )
     def delete(self, request, user_id=None):
-        current_user = request.user
-        following = get_object_or_404(User, id=user_id)
         get_object_or_404(
-            Follow, user=current_user, following=following
+            Follow, user=request.user
+        ).filter(
+            following__id=user_id
         ).delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -109,18 +109,16 @@ class FavoriteViewSet(viewsets.ModelViewSet):
     serializer_class = FavoriteRecipeSerializer
 
     def get_queryset(self):
-        user = self.request.user
-        return user.favorites.all()
+        return self.request.user.favorites.all()
 
     def perform_create(self, serializer):
-        current_user = self.request.user
-        recipe = get_object_or_404(
-            Recipe,
-            id=self.kwargs['recipe_id']
-        )
+        # recipe = get_object_or_404(
+        #     Recipe,
+        #     id=self.kwargs['recipe_id']
+        # )
         return serializer.save(
-            user=current_user,
-            recipe=recipe,
+            user=self.request.user,
+            recipe__id=self.kwargs['recipe_id'],
         )
 
     @action(
@@ -128,12 +126,11 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         methods=['DELETE'],
     )
     def delete(self, request, recipe_id=None):
-        current_user = request.user
-        recipe = get_object_or_404(Recipe, id=recipe_id)
+        # recipe = get_object_or_404(Recipe, id=recipe_id)
         get_object_or_404(
             Favorite,
-            user=current_user,
-            recipe=recipe
+            user=request.user,
+            recipe__id=recipe_id
         ).delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -159,11 +156,10 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         return result
 
     def perform_create(self, serializer):
-        current_user = self.request.user
-        recipe = get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
+        # recipe = get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
         return serializer.save(
-            user=current_user,
-            recipe=recipe
+            user=self.request.user,
+            recipe__id=self.kwargs['recipe_id']
         )
 
     @action(
@@ -171,12 +167,11 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         methods=['DELETE'],
     )
     def delete(self, request, recipe_id=None):
-        current_user = request.user
-        recipe = get_object_or_404(Recipe, id=recipe_id)
+        # recipe = get_object_or_404(Recipe, id=recipe_id)
         get_object_or_404(
             ShoppingCart,
-            user=current_user,
-            recipe=recipe
+            user=request.user,
+            recipe__id=recipe_id
         ).delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
