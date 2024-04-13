@@ -18,7 +18,7 @@ from .filters import (
     RecipeFilter,
     RecipeFilterBackend,
 )
-from .models import (
+from recipes.models import (
     Favorite,
     Follow,
     Ingredient,
@@ -112,10 +112,6 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         return self.request.user.favorites.all()
 
     def perform_create(self, serializer):
-        # recipe = get_object_or_404(
-        #     Recipe,
-        #     id=self.kwargs['recipe_id']
-        # )
         return serializer.save(
             user=self.request.user,
             recipe__id=self.kwargs['recipe_id'],
@@ -126,7 +122,6 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         methods=['DELETE'],
     )
     def delete(self, request, recipe_id=None):
-        # recipe = get_object_or_404(Recipe, id=recipe_id)
         get_object_or_404(
             Favorite,
             user=request.user,
@@ -156,7 +151,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         return result
 
     def perform_create(self, serializer):
-        # recipe = get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
         return serializer.save(
             user=self.request.user,
             recipe__id=self.kwargs['recipe_id']
@@ -167,7 +161,6 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         methods=['DELETE'],
     )
     def delete(self, request, recipe_id=None):
-        # recipe = get_object_or_404(Recipe, id=recipe_id)
         get_object_or_404(
             ShoppingCart,
             user=request.user,

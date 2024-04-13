@@ -1,11 +1,21 @@
 from django.contrib.auth.models import AbstractBaseUser
-from django.core.validators import RegexValidator
+from django.core.validators import (
+    MinValueValidator,
+    RegexValidator,
+)
 from django.db import models
+from django.db.models import UniqueConstraint
+from django_extensions.validators import HexValidator
 
 FIRSTNAME_MAX_LENGHT = 150
 LASTNAME_MAX_LENGHT = 150
 USERNAME_MAX_LENGHT = 150
 EMAIL_MAX_LENGHT = 254
+
+NAME_MAX_LENGHT = 200
+SLUG_MAX_LENGHT = 200
+COLOR_MAX_LENGHT = 7
+NUMBER_OF_VISIBLE_CHATACTERS = 15
 
 
 class User(AbstractBaseUser):
@@ -25,7 +35,9 @@ class User(AbstractBaseUser):
         ]
     )
     email = models.EmailField(
-        verbose_name='Адрес электронной почты', max_length=EMAIL_MAX_LENGHT, unique=True
+        verbose_name='Адрес электронной почты',
+        max_length=EMAIL_MAX_LENGHT,
+        unique=True,
     )
 
     USERNAME_FIELD = 'username'
@@ -36,20 +48,6 @@ class User(AbstractBaseUser):
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
         ordering = ('username',)
-
-
-# from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator
-from django.db import models
-from django.db.models import UniqueConstraint
-from django_extensions.validators import HexValidator
-
-# User = get_user_model()
-
-NAME_MAX_LENGHT = 200
-SLUG_MAX_LENGHT = 200
-COLOR_MAX_LENGHT = 7
-NUMBER_OF_VISIBLE_CHATACTERS = 15
 
 
 class Tag(models.Model):
@@ -204,14 +202,17 @@ class UserRecipeAbstractModel(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        verbose_name='Пользователь',
         related_name='recipes',
+        verbose_name='Пользователь',
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         related_name='users',
     )
+
+    def __str__(self):
+        return f'{self.user} {self.recipe}'
 
     class Meta:
         constraints = [
@@ -227,8 +228,8 @@ class Favorite(UserRecipeAbstractModel):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        verbose_name='Пользователь',
         related_name='favorites',
+        verbose_name='Пользователь',
     )
     recipe = models.ForeignKey(
         Recipe,
