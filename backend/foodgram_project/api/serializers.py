@@ -1,5 +1,6 @@
 import webcolors
 
+from djoser.serializers import UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -11,12 +12,8 @@ from recipes.models import (
     Recipe,
     RecipeIngredient,
     Tag,
+    User,
 )
-
-from djoser.serializers import UserSerializer
-from rest_framework import serializers
-
-from recipes.models import User
 
 
 class CurrentUserSerializer(UserSerializer):
