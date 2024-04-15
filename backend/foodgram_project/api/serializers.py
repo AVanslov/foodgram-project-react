@@ -1,6 +1,5 @@
 import webcolors
 
-from django.contrib.auth import get_user_model
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -11,7 +10,6 @@ from recipes.models import (
     Ingredient,
     Recipe,
     RecipeIngredient,
-    ShoppingCart,
     Tag,
 )
 
@@ -61,34 +59,6 @@ class AuthorSerializer(UserSerializer):
         if user.is_anonymous:
             return False
         return user.followers.filter(following=obj).exists()
-
-
-class FavoriteRecipeSerializer(serializers.ModelSerializer):
-    id = serializers.PrimaryKeyRelatedField(
-        source='favorites.id',
-        read_only=True
-    )
-    name = serializers.CharField(
-        source='favorites.name',
-        read_only=True
-    )
-    image = Base64ImageField(
-        source='favorites.image',
-        read_only=True
-    )
-    cooking_time = serializers.IntegerField(
-        source='favorites.cooking_time',
-        read_only=True
-    )
-
-    class Meta:
-        model = Favorite
-        fields = (
-            'id',
-            'name',
-            'image',
-            'cooking_time'
-        )
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -151,7 +121,6 @@ class RecipeReadSerializer(serializers.ModelSerializer):
             'is_favorited',
             'is_in_shopping_cart',
         )
-
 
     def get_is_favorited(self, obj):
         request = self.context['request']
@@ -313,29 +282,84 @@ class FollowSerializer(AuthorSerializer):
         raise ValidationError('You cannot follow yourself')
 
 
-class ShoppingCartSerializer(serializers.ModelSerializer):
+class FavoriteAndShoppingCartSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
-        source='purchases.id',
+        source='recipes.id',
         read_only=True
     )
     name = serializers.CharField(
-        source='purchases.name',
+        source='recipes.name',
         read_only=True
     )
     image = Base64ImageField(
-        source='purchases.image',
+        source='recipes.image',
         read_only=True
     )
     cooking_time = serializers.IntegerField(
-        source='purchases.cooking_time',
+        source='recipes.cooking_time',
         read_only=True
     )
 
     class Meta:
-        model = ShoppingCart
+        model = Favorite
         fields = (
             'id',
             'name',
             'image',
             'cooking_time'
         )
+
+# class FavoriteRecipeSerializer(serializers.ModelSerializer):
+#     id = serializers.PrimaryKeyRelatedField(
+#         source='favorites.id',
+#         read_only=True
+#     )
+#     name = serializers.CharField(
+#         source='favorites.name',
+#         read_only=True
+#     )
+#     image = Base64ImageField(
+#         source='favorites.image',
+#         read_only=True
+#     )
+#     cooking_time = serializers.IntegerField(
+#         source='favorites.cooking_time',
+#         read_only=True
+#     )
+
+#     class Meta:
+#         model = Favorite
+#         fields = (
+#             'id',
+#             'name',
+#             'image',
+#             'cooking_time'
+#         )
+
+
+# class ShoppingCartSerializer(serializers.ModelSerializer):
+#     id = serializers.PrimaryKeyRelatedField(
+#         source='purchases.id',
+#         read_only=True
+#     )
+#     name = serializers.CharField(
+#         source='purchases.name',
+#         read_only=True
+#     )
+#     image = Base64ImageField(
+#         source='purchases.image',
+#         read_only=True
+#     )
+#     cooking_time = serializers.IntegerField(
+#         source='purchases.cooking_time',
+#         read_only=True
+#     )
+
+#     class Meta:
+#         model = ShoppingCart
+#         fields = (
+#             'id',
+#             'name',
+#             'image',
+#             'cooking_time'
+#         )

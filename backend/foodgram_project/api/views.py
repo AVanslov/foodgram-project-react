@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Sum
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -7,6 +8,7 @@ from rest_framework import (
     status,
     viewsets,
 )
+from djoser.views import UserViewSet
 from rest_framework.decorators import (
     action,
     api_view,
@@ -19,29 +21,21 @@ from .filters import (
     RecipeFilterBackend,
 )
 from recipes.models import (
-    Favorite,
     Follow,
     Ingredient,
     Recipe,
-    ShoppingCart,
     Tag,
+    UserRecipeModel,
+    User
 )
 from .serializers import (
-    FavoriteRecipeSerializer,
+    FavoriteAndShoppingCartSerializer,
     FollowSerializer,
     IngredientSerializer,
     RecipeSerializer,
-    ShoppingCartSerializer,
     TagSerializer,
+    UserSerializer,
 )
-
-User = get_user_model()
-
-
-from django.contrib.auth import get_user_model
-from djoser.views import UserViewSet
-
-from .serializers import UserSerializer
 
 
 class CustomUserViewSet(UserViewSet):
@@ -106,15 +100,16 @@ class FollowViewSet(viewsets.ModelViewSet):
 
 
 class FavoriteViewSet(viewsets.ModelViewSet):
-    serializer_class = FavoriteRecipeSerializer
+    serializer_class = FavoriteAndShoppingCartSerializer
 
     def get_queryset(self):
-        return self.request.user.favorites.all()
+        return self.request.user.recipes.filter(is_favorite=True)
 
     def perform_create(self, serializer):
         return serializer.save(
             user=self.request.user,
             recipe__id=self.kwargs['recipe_id'],
+            is_favorite=True,
         )
 
     @action(
@@ -123,7 +118,7 @@ class FavoriteViewSet(viewsets.ModelViewSet):
     )
     def delete(self, request, recipe_id=None):
         get_object_or_404(
-            Favorite,
+            UserRecipeModel,
             user=request.user,
             recipe__id=recipe_id
         ).delete()
@@ -132,28 +127,23 @@ class FavoriteViewSet(viewsets.ModelViewSet):
 
 
 class ShoppingCartViewSet(viewsets.ModelViewSet):
-    serializer_class = ShoppingCartSerializer
+    serializer_class = FavoriteAndShoppingCartSerializer
 
     def get_queryset(self):
         user = self.request.user
-        cart = user.purchases.all()
+        cart = user.purchases.filter(is_in_shopping_cart=True)
         result = {}
         for recipe in cart:
-            ingredients = recipe.recipe.ingredientinrecipe_set.all()
+            ingredients = recipe.recipe.recipeingredient_set.all()
             for ingredient in ingredients:
-                amount_in_cart = ingredient.amount
-                ingredient_in_cart_id = ingredient.ingredient.id
-                if ingredient_in_cart_id in result:
-                    result[ingredient_in_cart_id] += amount_in_cart
-                else:
-                    result[ingredient_in_cart_id] = amount_in_cart
-
+                result += ingredient.aggregate(Sum('ingredient__amount'))
         return result
 
     def perform_create(self, serializer):
         return serializer.save(
             user=self.request.user,
-            recipe__id=self.kwargs['recipe_id']
+            recipe__id=self.kwargs['recipe_id'],
+            is_in_shopping_cart=True
         )
 
     @action(
@@ -162,7 +152,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     )
     def delete(self, request, recipe_id=None):
         get_object_or_404(
-            ShoppingCart,
+            UserRecipeModel,
             user=request.user,
             recipe__id=recipe_id
         ).delete()
@@ -173,17 +163,12 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 @api_view(['GET'])
 def get_list(request):
     user = request.user
-    cart = user.in_cart.all()
+    cart = user.recipes.filter(is_in_shopping_cart=True)
     result = {}
     for recipe in cart:
         ingredients = recipe.recipe.recipeingredient_set.all()
         for ingredient in ingredients:
-            amount_in_cart = ingredient.amount
-            ingredient_in_cart_name = ingredient.ingredient.name
-            if ingredient_in_cart_name in result:
-                result[ingredient_in_cart_name] += amount_in_cart
-            else:
-                result[ingredient_in_cart_name] = amount_in_cart
+            result += ingredient.aggregate(Sum('ingredient__amount'))
     ingredients_list = str(result)
     return FileResponse(
         ingredients_list,
