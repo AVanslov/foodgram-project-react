@@ -15,6 +15,7 @@ from rest_framework.decorators import (
 )
 from rest_framework.response import Response
 
+from converters import create_report_about_ingredient
 from .filters import (
     IngredientFilter,
     RecipeFilter,
@@ -25,20 +26,22 @@ from recipes.models import (
     Ingredient,
     Recipe,
     Tag,
-    UserRecipeModel,
+    Favorite, #  найти применение
+    ShoppingCart, # найти применение
     User
 )
 from .serializers import (
     FavoriteAndShoppingCartSerializer,
     FollowSerializer,
     IngredientSerializer,
-    RecipeSerializer,
+    RecipeReadSerializer,
+    RecipeWriteSerializer,
     TagSerializer,
     UserSerializer,
 )
 
 
-class CustomUserViewSet(UserViewSet):
+class UserViewSet(UserViewSet):
     queryset = get_user_model().objects.all()
     serializer_class = UserSerializer
     lookup_field = "username"
@@ -58,9 +61,10 @@ class TagViewSet(viewsets.ModelViewSet):
     pagination_class = None
 
 
+# разделить безобпасные и небезопасные методы
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = RecipeSerializer
+    serializer_class = RecipeWriteSerializer
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
     ]
@@ -163,13 +167,15 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 @api_view(['GET'])
 def get_list(request):
     user = request.user
-    cart = user.recipes.filter(is_in_shopping_cart=True)
-    result = {}
-    for recipe in cart:
-        ingredients = recipe.recipe.recipeingredient_set.all()
-        for ingredient in ingredients:
-            result += ingredient.aggregate(Sum('ingredient__amount'))
-    ingredients_list = str(result)
+    ingredients_data = user.purchases.ingredients.values('name').annotate(
+        ingredient_amount=Sum('ingredient__amount')
+    ).order_by('ingredient__name')
+    ingredients_list = [
+        create_report_about_ingredient(ingredient_number, ingredient)
+        for ingredient_number, ingredient
+        in enumerate(ingredients_data, start=1)
+    ]
+
     return FileResponse(
         ingredients_list,
         as_attachment=True,

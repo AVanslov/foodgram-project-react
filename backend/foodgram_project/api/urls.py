@@ -3,7 +3,7 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
-    CustomUserViewSet,
+    UserViewSet,
     FavoriteViewSet,
     FollowViewSet,
     get_list,
@@ -41,7 +41,7 @@ router.register(
     r'users/subscriptions', FollowViewSet, basename='subscriptions'
 )
 
-router.register('users', CustomUserViewSet)
+router.register('users', UserViewSet)
 
 urlpatterns = [
     path(

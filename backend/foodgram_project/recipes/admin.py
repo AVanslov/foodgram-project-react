@@ -15,7 +15,6 @@ from .models import (
 
 class OnlyWithFollowersOrFollowingsListFilter(admin.SimpleListFilter):
     title = ('Фильтр по наличию подписиков и подписок')
-    # parameter_name = 'follower'
 
     def lookups(self, request, model_admin):
 
@@ -48,15 +47,15 @@ class UserAdmin(admin.ModelAdmin):
 
     @admin.display(empty_value=None)
     def recipes_count(self, user):
-        return user.recipes.all().count()
+        return user.recipes.count()
 
     @admin.display(description='Подписчики', empty_value=None)
     def followers(self, user):
-        return user.followers.all().count()
+        return user.followers.count()
 
     @admin.display(description='Подписки', empty_value=None)
     def following(self, user):
-        return user.author.all().count()
+        return user.author.count()
 
 
 @admin.register(Ingredient)
@@ -72,7 +71,7 @@ class IngredientAdmin(admin.ModelAdmin):
 
     @admin.display(empty_value=None)
     def recipes_count(self, ingredient):
-        return ingredient.recipes.all().count()
+        return ingredient.recipes.count()
 
 
 class CookongTimeListFilter(admin.SimpleListFilter):
@@ -111,7 +110,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @admin.display(description='Подписчики', empty_value=None)
     def followers(self, recipe):
-        return recipe.favorites.all().count()
+        return recipe.favorites.count()
 
     @admin.display(description='Теги', empty_value=None)
     def tags(self, recipe):
