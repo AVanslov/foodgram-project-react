@@ -227,24 +227,20 @@ class FollowSerializer(AuthorSerializer):
 
 class FavoriteAndShoppingCartSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
-        source='recipes.id',
         read_only=True
     )
     name = serializers.CharField(
-        source='recipes.name',
         read_only=True
     )
     image = Base64ImageField(
-        source='recipes.image',
         read_only=True
     )
     cooking_time = serializers.IntegerField(
-        source='recipes.cooking_time',
         read_only=True
     )
 
     class Meta:
-        model = Favorite
+        model = Recipe
         fields = (
             'id',
             'name',

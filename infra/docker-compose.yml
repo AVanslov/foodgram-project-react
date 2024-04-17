@@ -7,23 +7,23 @@ volumes:
   frontend_value:
 
 services:
-  db:
-    image: postgres:13.10
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-      - ../data:/test_data
-    env_file:
-      - .env
+  # db:
+  #   image: postgres:13.10
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data/
+  #     - ../data:/test_data
+  #   env_file:
+  #     - .env
 
-  backend:
-    build: ../backend/foodgram_project/
-    volumes:
-      - static_value:/code/static/
-      - media_value:/code/media/
-    depends_on:
-      - db
-    env_file:
-      - .env
+  # backend:
+  #   build: ../backend/foodgram_project/
+  #   volumes:
+  #     - static_value:/code/static/
+  #     - media_value:/code/media/
+  #   depends_on:
+  #     - db
+  #   env_file:
+  #     - .env
 
   frontend:
     build:
@@ -31,8 +31,8 @@ services:
       dockerfile: Dockerfile
     volumes:
       - frontend_value:/app/result_build/build/
-    depends_on:
-      - backend
+    # depends_on:
+    #   - backend
   nginx:
     image: nginx:1.19.3
     ports:
@@ -43,7 +43,7 @@ services:
       - static_value:/var/html/static/
       - media_value:/var/html/media/
       - ../docs/:/usr/share/nginx/html/api/docs/
-    depends_on:
-      - backend
-      - frontend
+    # depends_on:
+    #   - backend
+    #   - frontend
 

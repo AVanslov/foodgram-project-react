@@ -7,6 +7,8 @@ from django.db import models
 from django.db.models import UniqueConstraint
 from django_extensions.validators import HexValidator
 
+from .validators import validate_not_djoser_endpoints
+
 FIRSTNAME_MAX_LENGHT = 150
 LASTNAME_MAX_LENGHT = 150
 USERNAME_MAX_LENGHT = 150
@@ -27,11 +29,12 @@ class User(AbstractBaseUser):
         verbose_name='Фамилия', max_length=LASTNAME_MAX_LENGHT,
     )
     username = models.CharField(
-        verbose_name='Пользователь',
+        verbose_name='Имя пользователя',
         max_length=USERNAME_MAX_LENGHT,
         unique=True,
         validators=[
-            RegexValidator(regex=r'^[\w.@+-]+\z')
+            RegexValidator(regex=r'^[\w.@+-]+\z'),
+            validate_not_djoser_endpoints
         ]
     )
     email = models.EmailField(
