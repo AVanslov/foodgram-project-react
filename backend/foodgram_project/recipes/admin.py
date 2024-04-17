@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
+from django.utils.html import format_html
 
 from .models import (
     Favorite,
@@ -99,7 +100,7 @@ class RecipeAdmin(admin.ModelAdmin):
         'id',
         'name',
         'author',
-        'followers',
+        'in_favorite_count',
         'cooking_time',
         'image',
         'tags',
@@ -109,22 +110,34 @@ class RecipeAdmin(admin.ModelAdmin):
     empty_value_display = '-empty-'
 
     @admin.display(description='Подписчики', empty_value=None)
-    def followers(self, recipe):
+    def in_favorite_count(self, recipe):
         return recipe.favorites.count()
 
     @admin.display(description='Теги', empty_value=None)
     def tags(self, recipe):
-        for tag in recipe.recipe_tags.all():
-            return mark_safe(tag.name)[:50] + '<br>'
+        return mark_safe(
+            '<br>'.join(
+                [(tag.name)[:50] for tag in recipe.recipe_tags.all()]
+            )
+        )
+
+    def image(self, recipe):
+        return format_html(
+            '<img scr="{}" style="max-width:200px; max-height:200px"/>'
+            .format(recipe.image.url)
+        )
 
     @admin.display(description='Ингредиенты', empty_value=None)
     def ingredients(self, recipe):
-        for ingredient in recipe.recipe_ingredients.all():
-            return (
-                mark_safe(ingredient.name)[:50],
-                mark_safe(ingredient.measurement_unit),
-                mark_safe(ingredient.amount) + '<br>'
+        return mark_safe(
+            '<br>'.join(
+                str(
+                    (ingredient.name)[:50],
+                    ingredient.measurement_unit,
+                    ingredient.amount
+                ) for ingredient in recipe.recipe_ingredients.all()
             )
+        )
 
 
 @admin.register(Tag)

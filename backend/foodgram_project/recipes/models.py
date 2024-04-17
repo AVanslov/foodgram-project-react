@@ -1,13 +1,15 @@
 from django.contrib.auth.models import AbstractBaseUser
 from django.core.validators import (
     MinValueValidator,
-    RegexValidator,
 )
 from django.db import models
 from django.db.models import UniqueConstraint
 from django_extensions.validators import HexValidator
 
-from .validators import validate_not_djoser_endpoints
+from .validators import (
+    validate_found_special_symbols,
+    validate_not_djoser_endpoints
+)
 
 FIRSTNAME_MAX_LENGHT = 150
 LASTNAME_MAX_LENGHT = 150
@@ -33,7 +35,7 @@ class User(AbstractBaseUser):
         max_length=USERNAME_MAX_LENGHT,
         unique=True,
         validators=[
-            RegexValidator(regex=r'^[\w.@+-]+\z'),
+            validate_found_special_symbols,
             validate_not_djoser_endpoints
         ]
     )
@@ -79,6 +81,7 @@ class Tag(models.Model):
     class Meta:
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
+        ordering = ('name',)
 
 
 class Ingredient(models.Model):
@@ -89,13 +92,14 @@ class Ingredient(models.Model):
         max_length=NAME_MAX_LENGHT,
     )
     measurement_unit = models.TextField(
-        'Единицы измерения',
+        'Мера',
         default=None,
     )
 
     class Meta:
         verbose_name = 'Продукт'
         verbose_name_plural = 'Продукты'
+        ordering = ('name',)
 
 
 class Recipe(models.Model):
@@ -104,7 +108,7 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(
         Ingredient,
         through='RecipeIngredient',
-        verbose_name='Ингредиенты',
+        verbose_name='Продукт',
         related_name='recipes',
     )
     tags = models.ManyToManyField(
@@ -132,7 +136,7 @@ class Recipe(models.Model):
     )
     author = models.ForeignKey(
         User,
-        verbose_name='Автор рецепта',
+        verbose_name='Автор',
         on_delete=models.CASCADE,
         related_name='recipes',
     )
@@ -156,7 +160,7 @@ class RecipeIngredient(models.Model):
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        verbose_name='Ингредиенты в рецепте',
+        verbose_name='Продукты в рецепте',
         related_name='recipes',
     )
     recipe = models.ForeignKey(
@@ -170,8 +174,8 @@ class RecipeIngredient(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Колличество ингредиента в рецепте'
-        verbose_name_plural = 'Колличество ингредиентов в рецепте'
+        verbose_name = 'Колличество продукта в рецепте'
+        verbose_name_plural = 'Колличество продуктов в рецепте'
 
 
 class Follow(models.Model):
@@ -189,7 +193,7 @@ class Follow(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='authors',
-        verbose_name='автор',
+        verbose_name='Автор',
     )
 
     class Meta:

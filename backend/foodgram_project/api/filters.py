@@ -5,7 +5,7 @@ from django_filters import (
 )
 from rest_framework import filters
 
-from .models import (
+from recipes.models import (
     Ingredient,
     Recipe,
     Tag,
