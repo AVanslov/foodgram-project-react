@@ -6,14 +6,12 @@ RUN pip install gunicorn==20.1.0
 
 COPY requirements.txt .
 
-COPY configured_ingredients.json .
-
-COPY tags.json .
-
 RUN pip install -r requirements.txt --no-cache-dir
 
-COPY . .
+COPY ../data/ingredients.json .
 
-# RUN python3 manage.py collectstatic
+COPY ../data/tags.json .
+
+COPY . .
 
 CMD ["gunicorn", "--bind", "0.0.0.0:7000", "foodgram_project.wsgi"]
