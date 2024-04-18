@@ -1,23 +1,17 @@
 [
     {
-        "fields": {
-            "name": "Десерты",
-            "color": "#ff0000",
-            "slug": "Desserts"
-        }
+        "name": "Десерты",
+        "color": "#ff0000",
+        "slug": "Desserts"
     },
     {   
-        "fields": {
-            "name": "Основные блюда",
-            "color": "#ff0010",
-            "slug": "Main"
-        }
+        "name": "Основные блюда",
+        "color": "#ff0010",
+        "slug": "Main"
     },
     {
-        "fields": {
-            "name": "Ужины",
-            "color": "#ff0020",
-            "slug": "Dinner"
-        }
+        "name": "Ужины",
+        "color": "#ff0020",
+        "slug": "Dinner"
     }
 ]
