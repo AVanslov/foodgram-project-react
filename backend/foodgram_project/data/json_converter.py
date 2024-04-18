@@ -10,7 +10,7 @@ for i, dictinary in enumerate(data, start=1):
 
     new_json.append(
         {
-            "model": "recipe.ingredient",
+            "model": "recipes.ingredient",
             "pk": i,
             "fields": dictinary,
         }
