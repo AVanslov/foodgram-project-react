@@ -16,5 +16,5 @@ for i, dictinary in enumerate(data, start=1):
         }
     )
 
-with open("configured_ingredients.json", "w") as write_file:
+with open("data/ingredients.json", "w") as write_file:
     json.dump(new_json, write_file, ensure_ascii=False)
