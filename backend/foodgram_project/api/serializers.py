@@ -6,8 +6,6 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from recipes.models import (
-    Favorite,
-    Follow,
     Ingredient,
     Recipe,
     RecipeIngredient,
@@ -105,26 +103,26 @@ class RecipeReadSerializer(serializers.ModelSerializer):
             'is_in_shopping_cart',
         )
 
-    def get_is_favorited(self, obj):
+    def get_is_favorited(self, recipe):
         request = self.context['request']
         user = request.user
         if user.is_anonymous:
             return False
-        return user.favorites.filter(recipe=obj).exists()
+        return user.favorites.filter(recipe=recipe).exists()
 
-    def get_is_in_shopping_cart(self, obj):
+    def get_is_in_shopping_cart(self, recipe):
         request = self.context['request']
         user = request.user
         if user.is_anonymous:
             return False
-        return user.purchases.filter(recipe=obj).exists()
+        return user.purchases.filter(recipe=recipe).exists()
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     author = AuthorSerializer(read_only=True)
     ingredients = RecipeIngredientSerializer(
-        source='recipeingredient_set',
+        source='ingredients_in_current_recipe',
         many=True,
     )
     image = Base64ImageField(required=False)
@@ -147,7 +145,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        ingredients = data.pop('recipeingredient_set')
+        ingredients = data.pop('ingredients_in_current_recipe')
         for ingredient in ingredients:
             if ingredient['amount'] <= 0:
                 raise serializers.ValidationError(
@@ -157,7 +155,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('recipeingredient_set')
+        ingredients = validated_data.pop('ingredients_in_current_recipe')
         user = self.context['request'].user
         recipe = Recipe.objects.create(author=user, **validated_data)
         recipe.tags.set(tags)
@@ -171,7 +169,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         RecipeIngredient.objects.filter(recipe=instance).delete()
         tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('recipeingredient_set')
+        ingredients = validated_data.pop('ingredients_in_current_recipe')
         instance.tags.set(tags)
         Recipe.objects.filter(pk=instance.pk).update(**validated_data)
         RecipeIngredient.objects.bulk_create(

@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('TOKEN', 'default-value')
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(',')
 
@@ -160,8 +160,8 @@ DJOSER = {
     'HIDE_USERS': False,
     'SERIALIZERS': {
         'user_create': 'djoser.serializers.UserCreateSerializer',
-        'user': 'recipes.serializers.CurrentUserSerializer',
-        'current_user': 'recipes.serializers.CurrentUserSerializer',
+        'user': 'api.serializers.AuthorSerializer',
+        'current_user': 'api.serializers.AuthorSerializer',
         'user_delete': 'djoser.serializers.UserSerializer',
     },
     'PERMISSIONS': {

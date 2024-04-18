@@ -44,7 +44,7 @@ services:
       - frontend_value_prodaction:/usr/share/nginx/html/
       - static_value_prodaction:/var/html/static/
       - media_value_prodaction:/var/html/media/
-      # - ./docs/:/usr/share/nginx/html/api/docs/
+      - ../docs/:/usr/share/nginx/html/api/docs/
     depends_on:
       - backend
       - frontend

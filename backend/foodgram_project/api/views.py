@@ -17,7 +17,7 @@ from rest_framework.decorators import (
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from converters import create_report_about_ingredient
+from .converters import create_report_about_ingredient
 from .filters import (
     IngredientFilter,
     RecipeFilter,
@@ -85,7 +85,7 @@ class FollowViewSet(viewsets.ModelViewSet):
     serializer_class = FollowSerializer
 
     def get_queryset(self):
-        return self.request.user.follower.all()
+        return self.request.user.authors.all()
 
     def perform_create(self, serializer):
         current_user = self.request.user
