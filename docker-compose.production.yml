@@ -11,7 +11,7 @@ services:
     image: postgres:13.10
     volumes:
       - postgres_data_prodaction:/var/lib/postgresql/data/
-      # - ../data:/data
+      - ../data:/data
     env_file:
       - .env
 
