@@ -10,11 +10,11 @@ for i, dictinary in enumerate(data, start=1):
 
     new_json.append(
         {
-            "model": "api.ingredient",
+            "model": "recipe.ingredient",
             "pk": i,
             "fields": dictinary,
         }
     )
 
-with open("data/ingredients.json", "w") as write_file:
+with open("converted_ingredients.json", "w") as write_file:
     json.dump(new_json, write_file, ensure_ascii=False)
