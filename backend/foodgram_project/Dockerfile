@@ -8,9 +8,9 @@ COPY requirements.txt .
 
 RUN pip install -r requirements.txt --no-cache-dir
 
-COPY ./../data/ingredients.json .
+COPY ./../../data/ingredients.json .
 
-COPY ./../data/tags.json .
+COPY ./../../data/tags.json .
 
 COPY . .
 
