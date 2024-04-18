@@ -8,10 +8,6 @@ COPY requirements.txt .
 
 RUN pip install -r requirements.txt --no-cache-dir
 
-COPY ./../../../data/ingredients.json .
-
-COPY ./../../../data/tags.json .
-
 COPY . .
 
 CMD ["gunicorn", "--bind", "0.0.0.0:7000", "foodgram_project.wsgi"]
