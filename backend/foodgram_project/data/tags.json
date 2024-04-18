@@ -1,6 +1,6 @@
 [
     {
-        "model": "recipes.tag", 
+        "model": "tag", 
         "pk": 1,
         "fields": {
             "name": "Десерты",
@@ -9,7 +9,7 @@
         }
     },
     {
-        "model": "recipes.tag", 
+        "model": "tag", 
         "pk": 2,
         "fields": {
             "name": "Основные блюда",
@@ -18,7 +18,7 @@
         }
     },
     {
-        "model": "recipes.tag", 
+        "model": "tag", 
         "pk": 3,
         "fields": {
             "name": "Ужины",
