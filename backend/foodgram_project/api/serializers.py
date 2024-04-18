@@ -22,12 +22,11 @@ class AuthorSerializer(UserSerializer):
         model = User
         fields = ['is_subscribed', *UserSerializer.Meta.fields]
 
-    def get_is_subscribed(self, obj):
+    def get_is_subscribed(self, user):
         request = self.context['request']
-        user = request.user
-        if user.is_anonymous:
+        if request.user.is_anonymous:
             return False
-        return user.follower.filter(following=obj).exists()
+        return request.user.followers.filter(following=user).exists()
 
 
 class Hex2NameColor(serializers.Field):
@@ -38,7 +37,7 @@ class Hex2NameColor(serializers.Field):
         try:
             data = webcolors.hex_to_name(data)
         except ValueError:
-            raise serializers.ValidationError('Для этого цвета нет имени')
+            raise serializers.ValidationError('Для этого цвета нет имени.')
         return data
 
 
@@ -115,14 +114,14 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         user = request.user
         if user.is_anonymous:
             return False
-        return user.purchases.filter(recipe=recipe).exists()
+        return user.shoppingcarts.filter(recipe=recipe).exists()
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     author = AuthorSerializer(read_only=True)
     ingredients = RecipeIngredientSerializer(
-        source='ingredients_in_current_recipe',
+        source='recipe_ingredients',
         many=True,
     )
     image = Base64ImageField(required=False)
@@ -145,7 +144,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        ingredients = data.pop('ingredients_in_current_recipe')
+        ingredients = data.pop('recipe_ingredients')
         for ingredient in ingredients:
             if ingredient['amount'] <= 0:
                 raise serializers.ValidationError(
@@ -155,7 +154,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('ingredients_in_current_recipe')
+        ingredients = validated_data.pop('recipe_ingredients')
         user = self.context['request'].user
         recipe = Recipe.objects.create(author=user, **validated_data)
         recipe.tags.set(tags)
@@ -169,7 +168,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         RecipeIngredient.objects.filter(recipe=instance).delete()
         tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('ingredients_in_current_recipe')
+        ingredients = validated_data.pop('recipe_ingredients')
         instance.tags.set(tags)
         Recipe.objects.filter(pk=instance.pk).update(**validated_data)
         RecipeIngredient.objects.bulk_create(
@@ -206,10 +205,10 @@ class FollowSerializer(AuthorSerializer):
         request = self.context['request']
         recipes_limit = request.query_params.get('recipes_limit')
         if recipes_limit is None:
-            result = user.following.recipes.all()
+            result = user.authors.recipes.all()
         else:
             recipes_limit = int(request.query_params.get('recipes_limit'))
-            result = user.following.recipes.all()[:recipes_limit]
+            result = user.authors.recipes.all()[:recipes_limit]
         return RecipiesFromFollowingSerializer(result, many=True).data
 
     def validate(self, data):
@@ -220,7 +219,7 @@ class FollowSerializer(AuthorSerializer):
         following = request.parser_context['kwargs']['user_id']
         if current_user != following:
             return data
-        raise ValidationError('You cannot follow yourself')
+        raise ValidationError('Вы не можете подписаться на себя.')
 
 
 class FavoriteAndShoppingCartSerializer(serializers.ModelSerializer):

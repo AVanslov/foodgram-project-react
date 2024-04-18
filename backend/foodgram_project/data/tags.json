@@ -1,7 +1,7 @@
 [
     {
         "pk": "1",
-        "model": "recipes.tag",
+        "model": "tag",
         "fields": {
             "name": "Десерты",
             "color": "#ff0000",
@@ -10,7 +10,7 @@
     },
     {
         "pk": "2",
-        "model": "recipes.tag",
+        "model": "tag",
         "fields": {
             "name": "Основные блюда",
             "color": "#ff0010",
@@ -19,7 +19,7 @@
     },
     {
         "pk": "3",
-        "model": "recipes.tag",
+        "model": "tag",
         "fields": {
             "name": "Ужин",
             "color": "#ff0020",

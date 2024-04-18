@@ -8,7 +8,8 @@ from django_extensions.validators import HexValidator
 
 from .validators import (
     validate_found_special_symbols,
-    validate_not_djoser_endpoints
+    validate_not_djoser_endpoints,
+    validate_not_null
 )
 
 FIRSTNAME_MAX_LENGHT = 150
@@ -108,7 +109,7 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(
         Ingredient,
         through='RecipeIngredient',
-        verbose_name='Продукт',
+        verbose_name='Продукты',
         related_name='recipes',
     )
     tags = models.ManyToManyField(
@@ -118,7 +119,6 @@ class Recipe(models.Model):
     image = models.ImageField(
         'Фото рецепта',
         upload_to='image/',
-        null=False,
         default=None,
     )
     name = models.CharField(
@@ -161,21 +161,22 @@ class RecipeIngredient(models.Model):
         Ingredient,
         on_delete=models.CASCADE,
         verbose_name='Продукты в рецепте',
-        related_name='ingredients_in_current_recipe',
+        related_name='recipe_ingredient',
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         verbose_name='Рецепт',
-        related_name='recipes_with_current_ingredient',
+        related_name='recipe_ingredients',
     )
     amount = models.PositiveSmallIntegerField(
         'Мера',
+        validators=[validate_not_null],
     )
 
     class Meta:
-        verbose_name = 'Колличество продукта в рецепте'
-        verbose_name_plural = 'Колличество продуктов в рецепте'
+        verbose_name = 'Количество продукта в рецепте'
+        verbose_name_plural = 'Количества продуктов в рецепте'
 
 
 class Follow(models.Model):
@@ -244,7 +245,12 @@ class Favorite(UserRecipeModel):
     )
 
     class Meta:
-
+        constraints = [
+            UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_favorite_recipe',
+            ),
+        ]
         verbose_name = 'Избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
 
@@ -253,16 +259,15 @@ class ShoppingCart(UserRecipeModel):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='purchases',
+        related_name='shoppingcarts',
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='purchases',
+        related_name='shoppingcarts',
         verbose_name='Рецепт в списке покупок',
     )
 
-    class Meta:
-
+    class Meta(UserRecipeModel.Meta):
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'
