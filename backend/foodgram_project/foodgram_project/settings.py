@@ -18,6 +18,9 @@ CSRF_TRUSTED_ORIGINS = ['https://foodgramius.ddns.net/']
 # Application definition
 
 INSTALLED_APPS = [
+    'api.apps.ApiConfig',
+    'recipes.apps.RecipesConfig',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -31,8 +34,6 @@ INSTALLED_APPS = [
     'django_filters',
     'django_extensions',
 
-    'api.apps.ApiConfig',
-    'recipes.apps.RecipesConfig',
 ]
 
 MIDDLEWARE = [
