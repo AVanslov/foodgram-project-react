@@ -9,7 +9,6 @@ from rest_framework import (
     viewsets,
 )
 from djoser.views import UserViewSet
-from rest_framework import generics
 from rest_framework.decorators import (
     action,
     api_view,
@@ -30,7 +29,6 @@ from recipes.models import (
     Tag,
     Favorite,
     ShoppingCart,
-    User
 )
 from .serializers import (
     RecipiesFromFollowingSerializer,
