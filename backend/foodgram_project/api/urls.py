@@ -1,5 +1,5 @@
 from django.conf.urls import include
-from django.urls import path
+from django.urls import path, re_path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
@@ -37,15 +37,15 @@ urlpatterns = [
         get_list,
         name='download_shopping_cart',
     ),
-    path(
+    re_path(
         r'recipes/(?P<recipe_id>\d+)/shopping_cart',
         ApiShoppingCart.as_view()
     ),
-    path(
+    re_path(
         r'recipes/(?P<recipe_id>\d+)/favorite',
         ApiFavorite.as_view()
     ),
-    path(
+    re_path(
         r'recipes/(?P<recipe_id>\d+)',
         RecipeDetail.as_view()
     ),
