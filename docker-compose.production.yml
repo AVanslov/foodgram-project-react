@@ -17,8 +17,8 @@ services:
   backend:
     image: avanslov/foodgram_backend
     volumes:
-      - static_value_prodaction:/static/
-      - media_value_prodaction:/media/
+      - static_value_prodaction:/code/static/
+      - media_value_prodaction:/code/media/
     depends_on:
       - db
     env_file:
