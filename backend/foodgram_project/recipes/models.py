@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.validators import (
     MinValueValidator,
 )
@@ -9,7 +9,6 @@ from django_extensions.validators import HexValidator
 from .validators import (
     validate_found_special_symbols,
     validate_not_djoser_endpoints,
-    validate_not_null
 )
 
 FIRSTNAME_MAX_LENGHT = 150
@@ -23,7 +22,7 @@ COLOR_MAX_LENGHT = 7
 NUMBER_OF_VISIBLE_CHATACTERS = 15
 
 
-class User(AbstractBaseUser):
+class User(AbstractUser):
 
     first_name = models.CharField(
         verbose_name='Имя', max_length=FIRSTNAME_MAX_LENGHT,
@@ -46,9 +45,8 @@ class User(AbstractBaseUser):
         unique=True,
     )
 
-    USERNAME_FIELD = 'username'
-    EMAIL_FIELD = 'email'
-    REQUIRED_FIELDS = ['email', 'first_name', 'last_name']
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
     class Meta:
         verbose_name = 'Пользователь'
@@ -161,7 +159,7 @@ class RecipeIngredient(models.Model):
         Ingredient,
         on_delete=models.CASCADE,
         verbose_name='Продукт в рецепте',
-        related_name='recipe_ingredient',
+        related_name='recipe_ingredients',
     )
     recipe = models.ForeignKey(
         Recipe,
@@ -171,12 +169,12 @@ class RecipeIngredient(models.Model):
     )
     amount = models.PositiveSmallIntegerField(
         'Мера',
-        validators=[validate_not_null],
+        validators=[MinValueValidator(limit_value=1)],
     )
 
     class Meta:
-        verbose_name = 'Количество продукта в рецепте'
-        verbose_name_plural = 'Количества продуктов в рецепте'
+        verbose_name = 'Мера продукта в рецепте'
+        verbose_name_plural = 'Меры продуктов в рецепте'
 
 
 class Follow(models.Model):
@@ -226,7 +224,7 @@ class UserRecipeModel(models.Model):
         constraints = [
             UniqueConstraint(
                 fields=['user', 'recipe'],
-                name='unique_recipe',
+                name='unique_%(class)s',
             ),
         ]
 
@@ -244,13 +242,7 @@ class Favorite(UserRecipeModel):
         verbose_name='Избранный рецепт',
     )
 
-    class Meta:
-        constraints = [
-            UniqueConstraint(
-                fields=['user', 'recipe'],
-                name='unique_favorite_recipe',
-            ),
-        ]
+    class Meta(UserRecipeModel.Meta):
         verbose_name = 'Избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
 

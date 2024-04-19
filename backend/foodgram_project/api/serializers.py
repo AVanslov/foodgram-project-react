@@ -6,12 +6,12 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from recipes.models import (
+    Follow,
     Ingredient,
     Recipe,
     RecipeIngredient,
     Tag,
     User,
-    UserRecipeModel,
 )
 
 
@@ -83,7 +83,6 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True,
     )
-    image = Base64ImageField(read_only=True, required=False)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
@@ -124,7 +123,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         source='recipe_ingredients',
         many=True,
     )
-    image = Base64ImageField(required=False)
+    image = Base64ImageField(required=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
@@ -148,7 +147,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         for ingredient in ingredients:
             if ingredient['amount'] <= 0:
                 raise serializers.ValidationError(
-                    'Количество ингредиента должно быть больше 0.'
+                    'Мера продукта должна быть больше 0.'
                 )
             return data
 
@@ -176,7 +175,9 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             recipe=instance,
             amount=[ingredient['amount'] for ingredient in ingredients],
         )
-        return instance
+        return serializers.ModelSerializer.update(
+            self, instance, validated_data
+        )
 
 
 class RecipiesFromFollowingSerializer(RecipeReadSerializer):
@@ -198,7 +199,7 @@ class FollowSerializer(AuthorSerializer):
     )
 
     class Meta:
-        model = UserRecipeModel
+        model = Follow
         fields = [*AuthorSerializer.Meta.fields]
 
     def get_recipes(self, user):
@@ -207,40 +208,13 @@ class FollowSerializer(AuthorSerializer):
         if recipes_limit is None:
             result = user.authors.recipes.all()
         else:
-            recipes_limit = int(request.query_params.get('recipes_limit'))
-            result = user.authors.recipes.all()[:recipes_limit]
+            result = user.authors.recipes.all()[:int(recipes_limit)]
         return RecipiesFromFollowingSerializer(result, many=True).data
 
-    def validate(self, data):
+    def validate_following(self, data):
         request = self.context['request']
         if request.method != 'POST':
             return data
-        current_user = str(request.user.id)
-        following = request.parser_context['kwargs']['user_id']
-        if current_user != following:
+        if str(request.user.id) != data['following']:
             return data
         raise ValidationError('Вы не можете подписаться на себя.')
-
-
-class FavoriteAndShoppingCartSerializer(serializers.ModelSerializer):
-    id = serializers.PrimaryKeyRelatedField(
-        read_only=True
-    )
-    name = serializers.CharField(
-        read_only=True
-    )
-    image = Base64ImageField(
-        read_only=True
-    )
-    cooking_time = serializers.IntegerField(
-        read_only=True
-    )
-
-    class Meta:
-        model = Recipe
-        fields = (
-            'id',
-            'name',
-            'image',
-            'cooking_time'
-        )

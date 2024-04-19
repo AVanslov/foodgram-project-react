@@ -6,7 +6,7 @@
 
 ### Справка
 
-Справка по API сервиса Foodgram доступна [[https://foodgramius.ddns.net/api/docs/redoc.html|здесь]]
+Справка по API сервиса Foodgram доступна [https://foodgramius.ddns.net/api/docs/redoc.html](здесь)
 
 ## Установка
 
@@ -77,8 +77,8 @@ sudo docker compose -f exec backend python manage.py loaddata tags.json
 ```
 
 Теперь проект достпен по адресам:
-[[http://127.0.0.1/|127.0.0.1]]
-[[http://localhost//|localhost]]
+[http://127.0.0.1/](127.0.0.1)
+[http://localhost//](localhost)
 
 ***Как зупустить проект на вашем сервере***
 
@@ -98,4 +98,4 @@ sudo docker compose -f docker-compose.production.yml exec backend python manage.
 
 ***Автор***
 Бучельников Александр
-[Мой e-mail](mailto:a.buchelnikov99@gmail.com)
+[E-mail](mailto:a.buchelnikov99@gmail.com)

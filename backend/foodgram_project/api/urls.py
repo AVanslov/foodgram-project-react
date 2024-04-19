@@ -1,5 +1,5 @@
 from django.conf.urls import include
-from django.urls import path, re_path
+from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
@@ -9,8 +9,7 @@ from .views import (
     FollowViewSet,
     get_list,
     IngredientViewSet,
-    RecipeDetail,
-    RecipeListView,
+    RecipeViewSet,
     TagViewSet,
 )
 
@@ -23,7 +22,12 @@ router.register(r'tags', TagViewSet)
 router.register(
     r'users/(?P<user_id>\d+)/subscribe',
     FollowViewSet,
-    basename="subscribe",
+    basename='subscribe',
+)
+router.register(
+    r'recipes',
+    RecipeViewSet,
+    basename='recipes'
 )
 router.register(
     r'users/subscriptions', FollowViewSet, basename='subscriptions'
@@ -37,21 +41,13 @@ urlpatterns = [
         get_list,
         name='download_shopping_cart',
     ),
-    re_path(
-        r'recipes/(?P<recipe_id>\d+)/shopping_cart',
+    path(
+        r'recipes/<int:recipe_id>/shopping_cart',
         ApiShoppingCart.as_view()
     ),
-    re_path(
-        r'recipes/(?P<recipe_id>\d+)/favorite',
-        ApiFavorite.as_view()
-    ),
-    re_path(
-        r'recipes/(?P<recipe_id>\d+)',
-        RecipeDetail.as_view()
-    ),
     path(
-        r'recipes/',
-        RecipeListView.as_view()
+        r'recipes/<int:recipe_id>/favorite',
+        ApiFavorite.as_view()
     ),
     path('', include(router.urls)),
     path('auth/', include('djoser.urls.authtoken')),

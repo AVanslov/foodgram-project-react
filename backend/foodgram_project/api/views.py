@@ -33,7 +33,7 @@ from recipes.models import (
     User
 )
 from .serializers import (
-    FavoriteAndShoppingCartSerializer,
+    RecipiesFromFollowingSerializer,
     FollowSerializer,
     IngredientSerializer,
     RecipeReadSerializer,
@@ -63,22 +63,19 @@ class TagViewSet(viewsets.ModelViewSet):
     pagination_class = None
 
 
-class RecipeListView(generics.ListCreateAPIView):
+class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = RecipeReadSerializer
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
     ]
     filter_backends = [DjangoFilterBackend, RecipeFilterBackend]
     filter_class = RecipeFilter
+    lookup_field = 'recipe_id'
 
-
-class RecipeDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Recipe.objects.all()
-    serializer_class = RecipeWriteSerializer
-    permission_classes = [
-        permissions.IsAuthenticated,
-    ]
+    def get_serializer_class(self):
+        if self.action == 'list' or self.action == 'retrieve':
+            return RecipeReadSerializer
+        return RecipeWriteSerializer
 
 
 class FollowViewSet(viewsets.ModelViewSet):
@@ -89,20 +86,15 @@ class FollowViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         current_user = self.request.user
-        following = get_object_or_404(
-            User,
-            id=self.kwargs['user_id'],
-        )
         return serializer.save(
-            user=current_user,
-            following=following,
+            user=current_user
         )
 
     @action(detail=False, methods=['DELETE'])
     def delete(self, request, user_id=None):
         get_object_or_404(
-            Follow, user=request.user
-        ).filter(
+            Follow,
+            user=request.user,
             following__id=user_id
         ).delete()
 
@@ -112,7 +104,7 @@ class FollowViewSet(viewsets.ModelViewSet):
 class ApiFavorite(APIView):
 
     def post(self, request):
-        serializer = FavoriteAndShoppingCartSerializer(data=request.data)
+        serializer = RecipiesFromFollowingSerializer(data=request.data)
         if serializer.is_valid():
             recipe = Favorite.objects.create(
                 user=self.request.user,
@@ -123,15 +115,18 @@ class ApiFavorite(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, recipe_id):
-        recipe = get_object_or_404(Favorite.objects.all(), pk=recipe_id)
-        recipe.delete()
+        get_object_or_404(
+            Favorite,
+            user=request.user,
+            recipe__id=recipe_id
+        ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ApiShoppingCart(APIView):
 
     def post(self, request):
-        serializer = FavoriteAndShoppingCartSerializer(data=request.data)
+        serializer = RecipiesFromFollowingSerializer(data=request.data)
         if serializer.is_valid():
             recipe = ShoppingCart.objects.create(
                 user=self.request.user,
@@ -142,8 +137,11 @@ class ApiShoppingCart(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, recipe_id):
-        recipe = get_object_or_404(ShoppingCart.objects.all(), pk=recipe_id)
-        recipe.delete()
+        get_object_or_404(
+            ShoppingCart,
+            user=request.user,
+            recipe__id=recipe_id
+        ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

@@ -117,26 +117,23 @@ class RecipeAdmin(admin.ModelAdmin):
     def tags(self, recipe):
         return mark_safe(
             '<br>'.join(
-                [(tag.name)[:50] for tag in recipe.recipe_tags.all()]
+                (tag.name)[:50] for tag in recipe.recipe_tags.all()
             )
         )
 
     def image(self, recipe):
-        return format_html(
-            '<img scr="{}" style="max-width:200px; max-height:200px"/>'
-            .format(recipe.image.url)
+        return mark_safe(
+            f'<img scr="{recipe.image.url}" style="max-width:200px; max-height:200px"/>'
         )
 
     @admin.display(description='Ингредиенты', empty_value=None)
     def ingredients(self, recipe):
         return mark_safe(
             '<br>'.join(
-                str(
-                    (ingredient.name)[:50],
-                    ingredient.measurement_unit,
-                    ingredient.amount
-                ) for ingredient in recipe.recipe_ingredients.all()
-            )
+                (ingredient.name)[:50],
+                ingredient.measurement_unit,
+                ingredient.amount
+            ) for ingredient in recipe.recipe_ingredients.all()
         )
 
 

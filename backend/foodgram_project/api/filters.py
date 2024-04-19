@@ -13,9 +13,7 @@ from recipes.models import (
 
 
 def is_param_enabled(value):
-    if value == '1' or value == 'true':
-        return True
-    return False
+    return value == '1' or value == 'true'
 
 
 class RecipeFilterBackend(filters.BaseFilterBackend):
