@@ -122,7 +122,8 @@ class RecipeAdmin(admin.ModelAdmin):
 
     def image(self, recipe):
         return mark_safe(
-            f'<img scr="{recipe.image.url}" style="max-width:200px; max-height:200px"/>'
+            f'<img scr="{recipe.image.url}"'
+            f'style="max-width:200px; max-height:200px"/>'
         )
 
     @admin.display(description='Ингредиенты', empty_value=None)
