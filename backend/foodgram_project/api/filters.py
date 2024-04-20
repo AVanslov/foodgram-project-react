@@ -23,11 +23,11 @@ class RecipeFilterBackend(filters.BaseFilterBackend):
         is_in_shopping_cart = request.query_params.get('is_in_shopping_cart')
 
         if is_param_enabled(is_favorited):
-            favorited = queryset.filter(favorited_by__user=user)
+            favorited = queryset.filter(favorites__user=user)
             return favorited
 
         if is_param_enabled(is_in_shopping_cart):
-            cart = queryset.filter(put_in_cart_by__user=user)
+            cart = queryset.filter(shoppingcarts__user=user)
             return cart
 
         return queryset
