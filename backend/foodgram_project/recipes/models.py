@@ -108,7 +108,7 @@ class Recipe(models.Model):
         Ingredient,
         through='RecipeIngredient',
         verbose_name='Продукты',
-        related_name='recipes',
+        related_name='recipe_ingredients',
     )
     tags = models.ManyToManyField(
         Tag,
@@ -159,15 +159,16 @@ class RecipeIngredient(models.Model):
         Ingredient,
         on_delete=models.CASCADE,
         verbose_name='Продукт в рецепте',
-        related_name='recipe_ingredients',
+        # related_name='recipe_ingredients',
+        related_name='ingredient',
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         verbose_name='Рецепт',
-        related_name='recipe_ingredients',
+        # related_name='recipe_ingredients',
     )
-    amount = models.PositiveSmallIntegerField(
+    amount = models.IntegerField(
         'Мера',
         validators=[MinValueValidator(limit_value=1)],
     )

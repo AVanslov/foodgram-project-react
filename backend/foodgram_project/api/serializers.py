@@ -50,16 +50,17 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Ingredient
         fields = '__all__'
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
-    id = IngredientSerializer()
-    name = serializers.CharField(required=False)
-    measurement_unit = serializers.IntegerField(required=False)
-    amount = serializers.IntegerField()
+    id = serializers.IntegerField(source='ingredient.pk')
+    name = serializers.CharField(source='ingredient.name')
+    measurement_unit = serializers.CharField(
+        source='ingredient.measurement_unit')
 
     class Meta:
         model = RecipeIngredient
@@ -69,11 +70,6 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
             'measurement_unit',
             'amount',
         )
-
-    def to_representation(self, instance):
-        data = IngredientSerializer(instance.ingredient).data
-        data['amount'] = instance.amount
-        return data
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):
@@ -117,15 +113,18 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
-    tags = TagSerializer(many=True)
     author = AuthorSerializer(read_only=True)
     ingredients = RecipeIngredientSerializer(
-        source='recipe_ingredients',
+        source='recipeingredient_set',
         many=True,
+        read_only=True
     )
     image = Base64ImageField(required=True)
-    is_favorited = serializers.SerializerMethodField()
-    is_in_shopping_cart = serializers.SerializerMethodField()
+    is_favorited = serializers.BooleanField(read_only=True, default=False)
+    is_in_shopping_cart = serializers.BooleanField(
+        read_only=True,
+        default=False
+    )
 
     class Meta:
         model = Recipe
@@ -143,41 +142,78 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        ingredients = data.pop('recipe_ingredients')
-        for ingredient in ingredients:
-            if ingredient['amount'] <= 0:
-                raise serializers.ValidationError(
-                    'Мера продукта должна быть больше 0.'
-                )
-            return data
+        data['author'] = self.context['request'].user
+
+        tags = self.initial_data.get('tags')
+        if not isinstance(tags, list):
+            raise serializers.ValidationError('tags must be list')
+        for tag in tags:
+            if not Tag.objects.filter(id=tag).exists():
+                raise serializers.ValidationError('No tag')
+        data['tags'] = tags
+
+        ingredients = self.initial_data.get('ingredients')
+        if not isinstance(ingredients, list):
+            raise serializers.ValidationError('ingredients must be list')
+        valid_ingredients = []
+        ingredient_objects = Ingredient.objects.filter(
+            id__in=[ingredient.get('id') for ingredient in ingredients]
+        )
+        if len(ingredient_objects) != len(ingredients):
+            raise serializers.ValidationError('invalid ingredient')
+        for ing_obj, ingredient in zip(ingredient_objects, ingredients):
+            amount = int(ingredient.get('amount'))
+            if amount < 1:
+                raise serializers.ValidationError('invalid amount')
+            valid_ingredients.append(
+                {'ingredient': ing_obj, 'amount': amount}
+            )
+        data['ingredients'] = valid_ingredients
+        return data
 
     def create(self, validated_data):
         tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('recipe_ingredients')
-        user = self.context['request'].user
-        recipe = Recipe.objects.create(author=user, **validated_data)
+        ingredients = validated_data.pop('ingredients')
+        recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
         RecipeIngredient.objects.bulk_create(
-            ingredient=[ingredient['id'] for ingredient in ingredients],
-            recipe=recipe,
-            amount=[ingredient['amount'] for ingredient in ingredients],
+            [RecipeIngredient(
+                ingredient=ingredient['ingredient'],
+                recipe=recipe,
+                amount=ingredient['amount']
+            ) for ingredient in ingredients]
         )
         return recipe
 
     def update(self, instance, validated_data):
-        RecipeIngredient.objects.filter(recipe=instance).delete()
-        tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('recipe_ingredients')
-        instance.tags.set(tags)
-        Recipe.objects.filter(pk=instance.pk).update(**validated_data)
-        RecipeIngredient.objects.bulk_create(
-            ingredient=[ingredient['id'] for ingredient in ingredients],
-            recipe=instance,
-            amount=[ingredient['amount'] for ingredient in ingredients],
+        ingredients = validated_data.get('ingredients')
+        tags = validated_data.get('tags')
+
+        instance.name = validated_data.get('name', instance.name)
+        instance.text = validated_data.get('text', instance.text)
+        instance.image = validated_data.get('image', instance.image)
+        instance.cooking_time = validated_data.get(
+            'cooking_time',
+            instance.cooking_time
         )
-        return serializers.ModelSerializer.update(
-            self, instance, validated_data
-        )
+
+        if tags:
+            instance.tags.clear()
+            instance.tags.set(tags)
+
+        if ingredients:
+            RecipeIngredient.objects.filter(recipe=instance).delete()
+            instance.ingredients.clear()
+            RecipeIngredient.objects.bulk_create([
+                RecipeIngredient(
+                    recipe=instance,
+                    ingredient=ingredient['ingredient'],
+                    amount=ingredient['amount']
+                )
+                for ingredient in ingredients
+            ])
+        instance.save()
+        return instance
 
 
 class RecipiesFromFollowingSerializer(RecipeReadSerializer):

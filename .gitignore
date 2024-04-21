@@ -133,3 +133,5 @@ dmypy.json
 .idea
 
 json_converter.py
+
+request.http
