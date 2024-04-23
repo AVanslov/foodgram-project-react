@@ -13,6 +13,8 @@ from .models import (
 )
 
 
+NAME_MAX_LENGHT = 50
+
 class OnlyWithFollowersOrFollowingsListFilter(admin.SimpleListFilter):
     title = ('Фильтр по наличию подписиков и подписок')
 
@@ -116,14 +118,14 @@ class RecipeAdmin(admin.ModelAdmin):
     def tags(self, recipe):
         return mark_safe(
             '<br>'.join(
-                (tag.name)[:50] for tag in recipe.recipe_tags.all()
+                tag.name[:NAME_MAX_LENGHT] for tag in recipe.recipe_tags.all()
             )
         )
 
     def image(self, recipe):
         return mark_safe(
             f'<img scr="{recipe.image.url}"'
-            f'style="max-width:200px; max-height:200px"/>'
+            'style="max-width:200px; max-height:200px"/>'
         )
 
     @admin.display(description='Ингредиенты', empty_value=None)

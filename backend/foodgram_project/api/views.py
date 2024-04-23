@@ -4,6 +4,7 @@ from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (
+    filters,
     permissions,
     status,
     viewsets,
@@ -13,14 +14,23 @@ from rest_framework.decorators import (
     action,
     api_view,
 )
+from rest_framework.permissions import (
+    AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
+)
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .paginator import ResultsSetPagination
+
 from .converters import create_report_about_ingredient
 from .filters import (
+    AuthorAndTagFilter,
     IngredientFilter,
     RecipeFilter,
-    RecipeFilterBackend,
+)
+from . permissions import (
+    IsRecipeAuthorOrReadOnly,
 )
 from recipes.models import (
     Follow,
@@ -29,46 +39,55 @@ from recipes.models import (
     Tag,
     Favorite,
     ShoppingCart,
+    User
 )
 from .serializers import (
-    RecipiesFromFollowingSerializer,
+    RecipesFromFollowingSerializer,
     FollowSerializer,
     IngredientSerializer,
     RecipeReadSerializer,
     RecipeWriteSerializer,
     TagSerializer,
-    UserSerializer,
+    AuthorSerializer,
 )
 
 
 class UserViewSet(UserViewSet):
-    queryset = get_user_model().objects.all()
-    serializer_class = UserSerializer
-    lookup_field = 'username'
+    queryset = User.objects.all()
+    serializer_class = AuthorSerializer
+
+    def get_permissions(self):
+        if self.action == 'me':
+            return [IsAuthenticated()]
+        return super().get_permissions()
 
 
-class IngredientViewSet(viewsets.ModelViewSet):
+class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filter_backends = (DjangoFilterBackend,)
-    filter_class = IngredientFilter
+    filterset_class = IngredientFilter
+    permission_classes = (AllowAny,)
     pagination_class = None
 
 
-class TagViewSet(viewsets.ModelViewSet):
+class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
+    permission_classes = (AllowAny, )
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    permission_classes = [
-        permissions.IsAuthenticatedOrReadOnly,
-    ]
-    filter_backends = [DjangoFilterBackend, RecipeFilterBackend]
-    filter_class = RecipeFilter
-    lookup_field = 'recipe_id'
+    filter_backends = (
+        DjangoFilterBackend,
+    )
+    # filter_class = RecipeFilter
+    filter_class = AuthorAndTagFilter
+    # filterset_fields = ('author', 'tags')
+
+    permission_classes = (IsAuthenticatedOrReadOnly, IsRecipeAuthorOrReadOnly)
 
     def get_serializer_class(self):
         if self.action == 'list' or self.action == 'retrieve':
@@ -78,14 +97,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 class FollowViewSet(viewsets.ModelViewSet):
     serializer_class = FollowSerializer
+    pagination_class = ResultsSetPagination
+    # pagination_class = LimitOffsetPagination
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get_queryset(self):
         return self.request.user.authors.all()
 
+    # def create(self, request, *args, **kwargs):
+    #     return super().create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
-        current_user = self.request.user
         return serializer.save(
-            user=current_user
+            user=self.request.user
         )
 
     @action(detail=False, methods=['DELETE'])
@@ -102,8 +126,8 @@ class FollowViewSet(viewsets.ModelViewSet):
 class ApiFavorite(APIView):
 
     def post(self, request):
-        serializer = RecipiesFromFollowingSerializer(data=request.data)
-        if serializer.is_valid():
+        serializer = RecipesFromFollowingSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
             recipe = Favorite.objects.create(
                 user=self.request.user,
                 recipe__id=self.kwargs['recipe_id']
@@ -124,8 +148,8 @@ class ApiFavorite(APIView):
 class ApiShoppingCart(APIView):
 
     def post(self, request):
-        serializer = RecipiesFromFollowingSerializer(data=request.data)
-        if serializer.is_valid():
+        serializer = RecipesFromFollowingSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
             recipe = ShoppingCart.objects.create(
                 user=self.request.user,
                 recipe__id=self.kwargs['recipe_id']

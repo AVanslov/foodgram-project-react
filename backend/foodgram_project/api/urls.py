@@ -15,9 +15,9 @@ from .views import (
 
 router = DefaultRouter()
 
-router.register(r'ingredients', IngredientViewSet)
+router.register('ingredients', IngredientViewSet)
 
-router.register(r'tags', TagViewSet)
+router.register('tags', TagViewSet)
 
 router.register(
     r'users/(?P<user_id>\d+)/subscribe',
