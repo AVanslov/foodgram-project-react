@@ -25,12 +25,12 @@ router.register(
     basename='subscribe',
 )
 router.register(
-    r'recipes',
+    'recipes',
     RecipeViewSet,
     basename='recipes'
 )
 router.register(
-    r'users/subscriptions', FollowViewSet, basename='subscriptions'
+    'users/subscriptions', FollowViewSet, basename='subscriptions'
 )
 
 router.register('users', UserViewSet)

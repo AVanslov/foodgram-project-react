@@ -6,18 +6,19 @@ from django_filters.rest_framework import (
 from recipes.models import (
     Ingredient,
     Recipe,
+    Tag,
     User
 )
 
 
-# class MultiValueCharFilter(filters.BaseCSVFilter, filters.CharFilter):
-#     def filter(self, qs, value):
-#         values = value or []
+class MultiValueCharFilter(filters.BaseCSVFilter, filters.CharFilter):
+    def filter(self, qs, value):
+        values = value or []
 
-#         for value in values:
-#             qs = super(MultiValueCharFilter, self).filter(qs, value)
+        for value in values:
+            qs = super(MultiValueCharFilter, self).filter(qs, value)
 
-#         return qs
+        return qs
 
 
 class AuthorAndTagFilter(FilterSet):
@@ -43,10 +44,12 @@ class AuthorAndTagFilter(FilterSet):
 
 
 class RecipeFilter(FilterSet):
-    author = filters.CharFilter(field_name='author__id')
-    # tags = MultiValueCharFilter(name='tags__name', lookup_expr='contains')
-    tags = filters.AllValuesMultipleFilter(
-        field_name='tags__name', lookup_expr='contains'
+
+    tags = filters.ModelMultipleChoiceFilter(
+        field_name='tags__slug',
+        to_field_name='slug',
+        queryset=Tag.objects.all(),
+        label='Tags'
     )
     is_favorited = filters.BooleanFilter(
         field_name='is_favorited',
@@ -59,16 +62,21 @@ class RecipeFilter(FilterSet):
 
     class Meta:
         model = Recipe
-        fields = ['author', 'tags', 'is_favorited', 'is_in_shopping_cart']
+        fields = (
+            'author',
+            'tags',
+            'is_favorited',
+            'is_in_shopping_cart',
+        )
 
     def filter_is_favorited(self, queryset, name, value):
         if self.request.user.is_authenticated and value:
-            return queryset.filter(favorites__user=self.request.user)
+            return queryset.filter(favorite__user=self.request.user)
         return queryset
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
         if self.request.user.is_authenticated and value:
-            return queryset.filter(shoppingcarts__user=self.request.user)
+            return queryset.filter(shoppingcart__user=self.request.user)
         return queryset
 
 

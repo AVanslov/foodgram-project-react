@@ -228,15 +228,50 @@ class RecipesFromFollowingSerializer(RecipeReadSerializer):
 
 
 class FollowSerializer(AuthorSerializer):
-
+    id = serializers.PrimaryKeyRelatedField(
+        source='authors.id',
+        read_only=True
+    )
+    username = serializers.CharField(
+        source='authors.username',
+        read_only=True
+    )
+    first_name = serializers.CharField(
+        source='authors.first_name',
+        read_only=True
+    )
+    last_name = serializers.CharField(
+        source='authors.last_name',
+        read_only=True
+    )
+    email = serializers.CharField(
+        source='authors.email',
+        read_only=True
+    )
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.IntegerField(
-        source='authors.recipes.count', read_only=True
+        source='authors.recipes.count',
+        read_only=True
     )
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = Follow
-        fields = [*AuthorSerializer.Meta.fields]
+        # fields = ['recipes', 'recipes_count', *AuthorSerializer.Meta.fields]
+        fields = (
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'recipes',
+            'email',
+            'recipes_count',
+            'is_subscribed'
+            # *AuthorSerializer.Meta.fields
+        )
+
+    def get_is_subscribed(self, obj):
+        return obj.user.followers.filter(following=obj.following).exists()
 
     def get_recipes(self, user):
         request = self.context['request']
@@ -253,6 +288,6 @@ class FollowSerializer(AuthorSerializer):
 
         if request.method != 'POST':
             return data
-        if str(request.user.id) != data['following']:
+        if request.user.id != data['following']:
             return data
         raise ValidationError('Вы не можете подписаться на себя.')

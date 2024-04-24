@@ -21,7 +21,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .paginator import ResultsSetPagination
+from .paginator import FollowResultsSetPagination, ResultsSetPagination
 
 from .converters import create_report_about_ingredient
 from .filters import (
@@ -36,6 +36,7 @@ from recipes.models import (
     Follow,
     Ingredient,
     Recipe,
+    RecipeIngredient,
     Tag,
     Favorite,
     ShoppingCart,
@@ -83,9 +84,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (
         DjangoFilterBackend,
     )
-    # filter_class = RecipeFilter
-    filter_class = AuthorAndTagFilter
-    # filterset_fields = ('author', 'tags')
+    filterset_class = RecipeFilter
 
     permission_classes = (IsAuthenticatedOrReadOnly, IsRecipeAuthorOrReadOnly)
 
@@ -97,7 +96,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 class FollowViewSet(viewsets.ModelViewSet):
     serializer_class = FollowSerializer
-    pagination_class = ResultsSetPagination
+    pagination_class = FollowResultsSetPagination
     # pagination_class = LimitOffsetPagination
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
@@ -170,9 +169,9 @@ class ApiShoppingCart(APIView):
 @api_view(['GET'])
 def get_list(request):
     user = request.user
-    ingredients_data = user.purchases.ingredients.values('name').annotate(
-        ingredient_amount=Sum('ingredient__amount')
-    ).order_by('ingredient__name')
+    ingredients_data = ShoppingCart.objects.filter(user=user).values('recipe__ingredients__name').annotate(
+        ingredient_amount=Sum('recipe__recipe_ingredients__amount')
+    ).order_by('recipe__ingredients__name')
     ingredients_list = [
         create_report_about_ingredient(ingredient_number, ingredient)
         for ingredient_number, ingredient
