@@ -21,11 +21,13 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .paginator import FollowResultsSetPagination, ResultsSetPagination
-
+from .paginator import (
+    FollowResultsSetPagination,
+    ResultsSetPagination,
+)
 from .converters import create_report_about_ingredient
 from .filters import (
-    AuthorAndTagFilter,
+    # AuthorAndTagFilter,
     IngredientFilter,
     RecipeFilter,
 )
@@ -43,11 +45,12 @@ from recipes.models import (
     User
 )
 from .serializers import (
-    RecipesFromFollowingSerializer,
+    # RecipesFromFollowingSerializer,
     FollowSerializer,
     IngredientSerializer,
     RecipeReadSerializer,
     RecipeWriteSerializer,
+    RecipesWriteFromFollowingSerializer,
     TagSerializer,
     AuthorSerializer,
 )
@@ -96,28 +99,33 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 class FollowViewSet(viewsets.ModelViewSet):
     serializer_class = FollowSerializer
-    pagination_class = FollowResultsSetPagination
+    # pagination_class = FollowResultsSetPagination
     # pagination_class = LimitOffsetPagination
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    # permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def get_pagination_class(self):
+        if self.action in ['create', 'list']:
+            return FollowResultsSetPagination
+        return ResultsSetPagination
 
     def get_queryset(self):
-        return self.request.user.authors.all()
-
-    # def create(self, request, *args, **kwargs):
-    #     return super().create(request, *args, **kwargs)
+        return self.request.user.followers.all().order_by('following__username')
 
     def perform_create(self, serializer):
         return serializer.save(
-            user=self.request.user
+            user=self.request.user,
+            following=get_object_or_404(User, id=self.kwargs['user_id'])
         )
 
     @action(detail=False, methods=['DELETE'])
     def delete(self, request, user_id=None):
-        get_object_or_404(
-            Follow,
+        follow = Follow.objects.filter(
             user=request.user,
-            following__id=user_id
-        ).delete()
+            following=get_object_or_404(User, id=user_id)
+        )
+        if not follow.exists():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        follow.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -125,7 +133,7 @@ class FollowViewSet(viewsets.ModelViewSet):
 class ApiFavorite(APIView):
 
     def post(self, request):
-        serializer = RecipesFromFollowingSerializer(data=request.data)
+        serializer = RecipesWriteFromFollowingSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             recipe = Favorite.objects.create(
                 user=self.request.user,
@@ -147,7 +155,7 @@ class ApiFavorite(APIView):
 class ApiShoppingCart(APIView):
 
     def post(self, request):
-        serializer = RecipesFromFollowingSerializer(data=request.data)
+        serializer = RecipesWriteFromFollowingSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             recipe = ShoppingCart.objects.create(
                 user=self.request.user,
@@ -158,12 +166,22 @@ class ApiShoppingCart(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, recipe_id):
-        get_object_or_404(
-            ShoppingCart,
+
+        serializer = RecipesWriteFromFollowingSerializer(data=request.data)
+
+        if self.request.user.is_anonymous:
+            return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
+        if not ShoppingCart.objects.filter(
+            user=request.user,
+            recipe__id=recipe_id
+        ).exists():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        ShoppingCart.objects.get(
             user=request.user,
             recipe__id=recipe_id
         ).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(['GET'])

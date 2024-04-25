@@ -1,7 +1,9 @@
 from djoser.serializers import UserSerializer
+from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from rest_framework.validators import UniqueTogetherValidator
 
 from .fields import Hex2NameColor
 from recipes.models import (
@@ -215,7 +217,19 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 
-class RecipesFromFollowingSerializer(RecipeReadSerializer):
+class RecipesWriteFromFollowingSerializer(RecipeWriteSerializer):
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'id',
+            'name',
+            'image',
+            'cooking_time'
+        )
+
+
+class RecipesReadFromFollowingSerializer(RecipeReadSerializer):
 
     class Meta:
         model = Recipe
@@ -228,66 +242,75 @@ class RecipesFromFollowingSerializer(RecipeReadSerializer):
 
 
 class FollowSerializer(AuthorSerializer):
-    id = serializers.PrimaryKeyRelatedField(
-        source='authors.id',
+    username = serializers.CharField(
+        source='following.username',
         read_only=True
     )
-    username = serializers.CharField(
-        source='authors.username',
+    id = serializers.PrimaryKeyRelatedField(
+        source='following.id',
         read_only=True
     )
     first_name = serializers.CharField(
-        source='authors.first_name',
+        source='following.first_name',
         read_only=True
     )
     last_name = serializers.CharField(
-        source='authors.last_name',
+        source='following.last_name',
         read_only=True
     )
     email = serializers.CharField(
-        source='authors.email',
-        read_only=True
-    )
-    recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.IntegerField(
-        source='authors.recipes.count',
+        source='following.email',
         read_only=True
     )
     is_subscribed = serializers.SerializerMethodField()
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.IntegerField(
+        source='following.recipes.count',
+        read_only=True
+    )
 
     class Meta:
         model = Follow
         # fields = ['recipes', 'recipes_count', *AuthorSerializer.Meta.fields]
         fields = (
-            'id',
             'username',
+            'id',
             'first_name',
             'last_name',
-            'recipes',
             'email',
+            'is_subscribed',
+            'recipes',
             'recipes_count',
-            'is_subscribed'
             # *AuthorSerializer.Meta.fields
         )
+        # validators = [
+        #     UniqueTogetherValidator(
+        #         queryset=Follow.objects.all(),
+        #         fields=['user', 'following']
+        #     )
+        # ]
 
-    def get_is_subscribed(self, obj):
-        return obj.user.followers.filter(following=obj.following).exists()
+    def get_is_subscribed(self, follow):
+        return Follow.objects.filter(user=self.context['request'].user, following=follow.following).exists()
 
-    def get_recipes(self, user):
+    def validate(self, data):
+        request = self.context['request']
+        following_id = data.get('id')
+
+        if request.method == 'POST' and Follow.objects.filter(user=request.user, following=following_id).exists():
+            raise ValidationError('Вы уже подписаны на этого автора.')
+        if request.method != 'POST':
+            return data
+        if request.user.id != following_id:
+            return data
+        raise ValidationError('Вы не можете подписаться на себя.')
+
+    def get_recipes(self, follow):
         request = self.context['request']
         recipes_limit = request.query_params.get('recipes_limit')
-        result = user.authors.recipes.all()
+        result = follow.following.recipes.all()
         if recipes_limit is None:
             result
         else:
-            result[:int(recipes_limit)]
-        return RecipesFromFollowingSerializer(result, many=True).data
-
-    def validate_following(self, data):
-        request = self.context['request']
-
-        if request.method != 'POST':
-            return data
-        if request.user.id != data['following']:
-            return data
-        raise ValidationError('Вы не можете подписаться на себя.')
+            result = result[:int(recipes_limit)]
+        return RecipesReadFromFollowingSerializer(result, many=True).data
