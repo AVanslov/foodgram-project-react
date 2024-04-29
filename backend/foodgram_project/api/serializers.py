@@ -1,9 +1,7 @@
 from djoser.serializers import UserSerializer
-from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework.validators import UniqueTogetherValidator
 
 from .fields import Hex2NameColor
 from recipes.models import (
@@ -218,7 +216,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
 
 class RecipesWriteFromFollowingSerializer(RecipeWriteSerializer):
-
+    
     class Meta:
         model = Recipe
         fields = (
@@ -271,7 +269,6 @@ class FollowSerializer(AuthorSerializer):
 
     class Meta:
         model = Follow
-        # fields = ['recipes', 'recipes_count', *AuthorSerializer.Meta.fields]
         fields = (
             'username',
             'id',
@@ -281,29 +278,19 @@ class FollowSerializer(AuthorSerializer):
             'is_subscribed',
             'recipes',
             'recipes_count',
-            # *AuthorSerializer.Meta.fields
         )
-        # validators = [
-        #     UniqueTogetherValidator(
-        #         queryset=Follow.objects.all(),
-        #         fields=['user', 'following']
-        #     )
-        # ]
-
-    def get_is_subscribed(self, follow):
-        return Follow.objects.filter(user=self.context['request'].user, following=follow.following).exists()
 
     def validate(self, data):
         request = self.context['request']
         following_id = data.get('id')
-
-        if request.method == 'POST' and Follow.objects.filter(user=request.user, following=following_id).exists():
+        if Follow.objects.filter(user=request.user, following=following_id).exists():
             raise ValidationError('Вы уже подписаны на этого автора.')
-        if request.method != 'POST':
-            return data
-        if request.user.id != following_id:
-            return data
-        raise ValidationError('Вы не можете подписаться на себя.')
+        if request.user.id == following_id:
+            raise ValidationError('Вы не можете подписаться на себя.')
+        return data
+
+    def get_is_subscribed(self, follow):
+        return Follow.objects.filter(user=self.context['request'].user, following=follow.following).exists()
 
     def get_recipes(self, follow):
         request = self.context['request']

@@ -1,8 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Sum
-from django.http import FileResponse
+from django.http import FileResponse, Http404, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.decorators import permission_classes
 from rest_framework import (
     filters,
     permissions,
@@ -45,11 +46,11 @@ from recipes.models import (
     User
 )
 from .serializers import (
-    # RecipesFromFollowingSerializer,
     FollowSerializer,
     IngredientSerializer,
     RecipeReadSerializer,
     RecipeWriteSerializer,
+    RecipesReadFromFollowingSerializer,
     RecipesWriteFromFollowingSerializer,
     TagSerializer,
     AuthorSerializer,
@@ -99,9 +100,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 class FollowViewSet(viewsets.ModelViewSet):
     serializer_class = FollowSerializer
-    # pagination_class = FollowResultsSetPagination
-    # pagination_class = LimitOffsetPagination
-    # permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        lookup_field = self.kwargs['user_id']
+        return get_object_or_404(Follow, user=self.request.user, following__pk=lookup_field)
 
     def get_pagination_class(self):
         if self.action in ['create', 'list']:
@@ -110,6 +113,20 @@ class FollowViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return self.request.user.followers.all().order_by('following__username')
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        if Follow.objects.filter(
+            user=self.request.user,
+            following__id=self.kwargs['user_id']
+        ).exists():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if self.request.user == get_object_or_404(User, id=self.kwargs['user_id']):
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def perform_create(self, serializer):
         return serializer.save(
@@ -133,33 +150,45 @@ class FollowViewSet(viewsets.ModelViewSet):
 class ApiFavorite(APIView):
 
     def post(self, request):
-        serializer = RecipesWriteFromFollowingSerializer(data=request.data)
+        serializer = RecipesReadFromFollowingSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             recipe = Favorite.objects.create(
                 user=self.request.user,
-                recipe__id=self.kwargs['recipe_id']
+                recipe=Recipe.objects.get(id=self.kwargs['recipe_id'])
             )
             recipe.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, recipe_id):
-        get_object_or_404(
-            Favorite,
+        # if not request.user.IsAuthenticated:
+        #     return Response(status=status.HTTP_401_UNAUTHORIZED)
+        Favorite.objects.get(
             user=request.user,
-            recipe__id=recipe_id
+            recipe=Recipe.objects.get(id=recipe_id)
         ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ApiShoppingCart(APIView):
 
+    # def get_object(self):
+    #     lookup_field = self.kwargs['recipe_id']
+    #     return get_object_or_404(ShoppingCart, user=self.request.user, recipe__pk=lookup_field)
+
     def post(self, request):
-        serializer = RecipesWriteFromFollowingSerializer(data=request.data)
+        serializer = RecipesReadFromFollowingSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
+            # if not request.user.IsAuthenticated:
+            #     return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
+            # elif ShoppingCart.objects.filter(user=self.request.user, recipe__id=self.kwargs['recipe_id']).exists():
+            #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # elif not Recipe.objects.get(id=self.kwargs['recipe_id']):
+            #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             recipe = ShoppingCart.objects.create(
-                user=self.request.user,
-                recipe__id=self.kwargs['recipe_id']
+                user=self.request.user.id,
+                recipe=Recipe.objects.get(id=self.kwargs['recipe_id'])
+                # recipe=get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
             )
             recipe.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -167,21 +196,18 @@ class ApiShoppingCart(APIView):
 
     def delete(self, request, recipe_id):
 
-        serializer = RecipesWriteFromFollowingSerializer(data=request.data)
-
-        if self.request.user.is_anonymous:
-            return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
-        if not ShoppingCart.objects.filter(
-            user=request.user,
-            recipe__id=recipe_id
-        ).exists():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        # if self.request.user.is_anonymous:
+        #     return Response(status=status.HTTP_401_UNAUTHORIZED)
+        # if not ShoppingCart.objects.filter(
+        #     user=request.user,
+        #     recipe__id=recipe_id
+        # ).exists():
+        #     return Response(status=status.HTTP_400_BAD_REQUEST)
         ShoppingCart.objects.get(
             user=request.user,
-            recipe__id=recipe_id
+            recipe=Recipe.objects.get(id=recipe_id)
         ).delete()
-        return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(['GET'])

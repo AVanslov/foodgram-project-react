@@ -5,6 +5,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     ApiFavorite,
     ApiShoppingCart,
+    # ShoppingCartViewSet,
     UserViewSet,
     FollowViewSet,
     get_list,
@@ -18,6 +19,12 @@ router = DefaultRouter()
 router.register('ingredients', IngredientViewSet)
 
 router.register('tags', TagViewSet)
+
+# router.register(
+#     r'recipes/?P<recipe_id>\d+/shopping_cart',
+#     ShoppingCartViewSet,
+#     basename='shoppingcarts'
+# )
 
 router.register(
     r'users/(?P<user_id>\d+)/subscribe',
@@ -36,17 +43,19 @@ router.register(
 router.register('users', UserViewSet)
 
 urlpatterns = [
+    # path('users/subscriptions', subscribe_list),
+    # path('users/(<int:user_id>)/subscribe', subscribe),
     path(
-        r'recipes/download_shopping_cart/',
+        'recipes/download_shopping_cart/',
         get_list,
         name='download_shopping_cart',
     ),
     path(
-        r'recipes/<int:recipe_id>/shopping_cart',
+        'recipes/<int:recipe_id>/shopping_cart',
         ApiShoppingCart.as_view()
     ),
     path(
-        r'recipes/<int:recipe_id>/favorite',
+        'recipes/<int:recipe_id>/favorite',
         ApiFavorite.as_view()
     ),
     path('', include(router.urls)),
