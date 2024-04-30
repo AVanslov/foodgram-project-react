@@ -5,12 +5,12 @@ from rest_framework.exceptions import ValidationError
 
 from .fields import Hex2NameColor
 from recipes.models import (
-    Follow,
     Favorite,
-    ShoppingCart,
-    Ingredient,
+    Follow,
     Recipe,
     RecipeIngredient,
+    ShoppingCart,
+    Ingredient,
     Tag,
     User,
 )
@@ -180,7 +180,9 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
     def validate_image(self, value):
         if not value:
-            raise serializers.ValidationError('Изображение обязательно должно быть.')
+            raise serializers.ValidationError(
+                'Изображение обязательно должно быть.'
+            )
         return value
 
     def create_ingredients(self, ingredients, recipe):
@@ -216,7 +218,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
 
 class RecipesWriteFromFollowingSerializer(RecipeWriteSerializer):
-    
+
     class Meta:
         model = Recipe
         fields = (
@@ -228,8 +230,16 @@ class RecipesWriteFromFollowingSerializer(RecipeWriteSerializer):
 
 
 class RecipesReadFromFollowingSerializer(RecipeReadSerializer):
+    id = serializers.PrimaryKeyRelatedField(
+        read_only=True
+    )
+    name = serializers.CharField(read_only=True)
+    image = Base64ImageField(read_only=True)
+    cooking_time = serializers.IntegerField(
+        read_only=True
+    )
 
-    class Meta:
+    class Meta(RecipeReadSerializer.Meta):
         model = Recipe
         fields = (
             'id',
@@ -283,14 +293,20 @@ class FollowSerializer(AuthorSerializer):
     def validate(self, data):
         request = self.context['request']
         following_id = data.get('id')
-        if Follow.objects.filter(user=request.user, following=following_id).exists():
+        if Follow.objects.filter(
+            user=request.user,
+            following=following_id
+        ).exists():
             raise ValidationError('Вы уже подписаны на этого автора.')
         if request.user.id == following_id:
             raise ValidationError('Вы не можете подписаться на себя.')
         return data
 
     def get_is_subscribed(self, follow):
-        return Follow.objects.filter(user=self.context['request'].user, following=follow.following).exists()
+        return Follow.objects.filter(
+            user=self.context['request'].user,
+            following=follow.following
+        ).exists()
 
     def get_recipes(self, follow):
         request = self.context['request']
@@ -301,3 +317,19 @@ class FollowSerializer(AuthorSerializer):
         else:
             result = result[:int(recipes_limit)]
         return RecipesReadFromFollowingSerializer(result, many=True).data
+
+
+class ShoppingCartSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source='recipe.id')
+    name = serializers.ReadOnlyField(source='recipe.name')
+    image = serializers.ReadOnlyField(source='recipe.image')
+    cooking_time = serializers.ReadOnlyField(source='recipe.cooking_time')
+
+    class Meta:
+        model = ShoppingCart
+        fields = (
+            'id',
+            'name',
+            'image',
+            'cooking_time'
+        )

@@ -5,6 +5,8 @@ from django.core.validators import (
 from django.db import models
 from django.db.models import UniqueConstraint
 from django_extensions.validators import HexValidator
+from django.shortcuts import get_object_or_404
+from django.utils.safestring import mark_safe
 
 from .validators import (
     validate_found_special_symbols,
@@ -15,6 +17,8 @@ FIRSTNAME_MAX_LENGHT = 150
 LASTNAME_MAX_LENGHT = 150
 USERNAME_MAX_LENGHT = 150
 EMAIL_MAX_LENGHT = 254
+MAX_NUMBER_OF_TAGS_OR_INGREDIENTS_PER_PAGE = 15
+NUMBER_OF_VISIBLE_CHATACTERS_IN_ADMIN_PANEL = 50
 
 NAME_MAX_LENGHT = 200
 SLUG_MAX_LENGHT = 200
@@ -77,6 +81,9 @@ class Tag(models.Model):
         ),
     )
 
+    def __str__(self):
+        return f'{self.name}'
+
     class Meta:
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
@@ -94,6 +101,9 @@ class Ingredient(models.Model):
         'Мера',
         default=None,
     )
+
+    def __str__(self):
+        return f'{self.name}'
 
     class Meta:
         verbose_name = 'Продукт'
@@ -144,6 +154,47 @@ class Recipe(models.Model):
         auto_now_add=True,
     )
 
+    def __str__(self):
+        return f'{self.name}'
+
+    def display_ingredients(self):
+        return mark_safe(
+            '<br>'.join(
+                [
+                    (ingredient.name)[
+                        :NUMBER_OF_VISIBLE_CHATACTERS_IN_ADMIN_PANEL
+                    ] + ', '
+                    + ingredient.measurement_unit + ', '
+                    + str(
+                        get_object_or_404(
+                            RecipeIngredient,
+                            ingredient=ingredient,
+                            recipe=self
+                        ).amount
+                    )
+                    for ingredient in self.ingredients.all()[
+                        :MAX_NUMBER_OF_TAGS_OR_INGREDIENTS_PER_PAGE
+                    ]
+                ]
+            )
+        )
+
+    display_ingredients.short_description = 'Продукты'
+
+    def display_tags(self):
+        return mark_safe(
+            '<br>'.join(
+                [
+                    (tag.name)[:NUMBER_OF_VISIBLE_CHATACTERS_IN_ADMIN_PANEL]
+                    for tag in self.tags.all()[
+                        :MAX_NUMBER_OF_TAGS_OR_INGREDIENTS_PER_PAGE
+                    ]
+                ]
+            )
+        )
+
+    display_tags.short_description = 'Теги'
+
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
@@ -172,6 +223,9 @@ class RecipeIngredient(models.Model):
         'Мера',
         validators=[MinValueValidator(limit_value=1)],
     )
+
+    def __str__(self):
+        return f'{self.ingredient} {self.recipe} {self.amount}'
 
     class Meta:
         verbose_name = 'Мера продукта в рецепте'

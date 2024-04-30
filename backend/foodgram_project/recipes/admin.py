@@ -12,25 +12,33 @@ from .models import (
     User,
 )
 
-
 NAME_MAX_LENGHT = 50
+
 
 class OnlyWithFollowersOrFollowingsListFilter(admin.SimpleListFilter):
     title = ('Фильтр по наличию подписиков и подписок')
+    parameter_name = 'following_count'
 
     def lookups(self, request, model_admin):
 
-        qs = model_admin.get_queryset(request)
-        if qs.filter(
-            follower__count=0,
-        ).exists():
-            yield ('нет подписчиков', ('Число подписчиков 0'))
-        if qs.filter(
-            following__count=0,
-        ).exists():
-            yield ('нет подписок', ('Число подписок 0'))
-        else:
-            yield ('все', ('все'))
+        return [
+            ('нет подписчиков', ('Число подписчиков 0')),
+            ('нет подписок', ('Число подписок 0')),
+            ('все', ('все'))
+        ]
+
+    def queryset(self, request, queryset):
+
+        if self.value() == 'нет подписчиков':
+            return queryset.filter(
+                follower__count=0,
+            )
+        if self.value() == 'нет подписок':
+            return queryset.filter(
+                following__count=0,
+            )
+        if self.value() == 'все':
+            return queryset.all()
 
 
 @admin.register(User)
@@ -57,7 +65,7 @@ class UserAdmin(admin.ModelAdmin):
 
     @admin.display(description='Подписки', empty_value=None)
     def following(self, user):
-        return user.author.count()
+        return user.authors.count()
 
 
 @admin.register(Ingredient)
@@ -76,23 +84,30 @@ class IngredientAdmin(admin.ModelAdmin):
         return ingredient.recipes.count()
 
 
-class CookongTimeListFilter(admin.SimpleListFilter):
+class CookingTimeListFilter(admin.SimpleListFilter):
     title = ('Время приготовления')
     parameter_name = 'cooking_time'
 
     def lookups(self, request, model_admin):
 
-        qs = model_admin.get_queryset(request)
-        if qs.filter(
-            cooking_time__range=(0, 10),
-        ).exists():
-            yield ('быстрые', ('быстрее 10 минут'))
-        if qs.filter(
-            cooking_time__range=(10, 30),
-        ).exists():
-            yield ('средние', ('быстрее 30 минут'))
-        else:
-            yield ('долгие', ('более 30 минут'))
+        return [
+            ('быстрые', ('быстрее 10 минут')),
+            ('средние', ('быстрее 30 минут')),
+            ('долгие', ('более 30 минут'))
+        ]
+
+    def queryset(self, request, queryset):
+
+        if self.value() == 'быстрые':
+            return queryset.filter(
+                cooking_time__range=(0, 10),
+            )
+        if self.value() == 'средние':
+            return queryset.filter(
+                cooking_time__range=(10, 30),
+            )
+        if self.value() == 'долгие':
+            return queryset.all()
 
 
 @admin.register(Recipe)
@@ -104,38 +119,24 @@ class RecipeAdmin(admin.ModelAdmin):
         'in_favorite_count',
         'cooking_time',
         'image',
-        'tags',
-        'ingredients'
+        'display_tags',
+        'display_ingredients'
     )
-    list_filter = [CookongTimeListFilter]
+    list_filter = [CookingTimeListFilter]
     empty_value_display = '-empty-'
+    readonly_fields = ['preview']
+
+    def preview(self, recipe):
+        return mark_safe(f'<img src="{recipe.image.url}">')
 
     @admin.display(description='Подписчики', empty_value=None)
     def in_favorite_count(self, recipe):
-        return recipe.favorites.count()
-
-    @admin.display(description='Теги', empty_value=None)
-    def tags(self, recipe):
-        return mark_safe(
-            '<br>'.join(
-                tag.name[:NAME_MAX_LENGHT] for tag in recipe.recipe_tags.all()
-            )
-        )
+        return recipe.favorite.count()
 
     def image(self, recipe):
         return mark_safe(
             f'<img scr="{recipe.image.url}"'
             'style="max-width:200px; max-height:200px"/>'
-        )
-
-    @admin.display(description='Ингредиенты', empty_value=None)
-    def ingredients(self, recipe):
-        return mark_safe(
-            '<br>'.join(
-                (ingredient.name)[:50],
-                ingredient.measurement_unit,
-                ingredient.amount
-            ) for ingredient in recipe.recipe_ingredients.all()
         )
 
 
