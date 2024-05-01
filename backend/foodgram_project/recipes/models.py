@@ -17,8 +17,6 @@ FIRSTNAME_MAX_LENGHT = 150
 LASTNAME_MAX_LENGHT = 150
 USERNAME_MAX_LENGHT = 150
 EMAIL_MAX_LENGHT = 254
-MAX_NUMBER_OF_TAGS_OR_INGREDIENTS_PER_PAGE = 15
-NUMBER_OF_VISIBLE_CHATACTERS_IN_ADMIN_PANEL = 50
 
 NAME_MAX_LENGHT = 200
 SLUG_MAX_LENGHT = 200
@@ -156,44 +154,6 @@ class Recipe(models.Model):
 
     def __str__(self):
         return f'{self.name}'
-
-    def display_ingredients(self):
-        return mark_safe(
-            '<br>'.join(
-                [
-                    (ingredient.name)[
-                        :NUMBER_OF_VISIBLE_CHATACTERS_IN_ADMIN_PANEL
-                    ] + ', '
-                    + ingredient.measurement_unit + ', '
-                    + str(
-                        get_object_or_404(
-                            RecipeIngredient,
-                            ingredient=ingredient,
-                            recipe=self
-                        ).amount
-                    )
-                    for ingredient in self.ingredients.all()[
-                        :MAX_NUMBER_OF_TAGS_OR_INGREDIENTS_PER_PAGE
-                    ]
-                ]
-            )
-        )
-
-    display_ingredients.short_description = 'Продукты'
-
-    def display_tags(self):
-        return mark_safe(
-            '<br>'.join(
-                [
-                    (tag.name)[:NUMBER_OF_VISIBLE_CHATACTERS_IN_ADMIN_PANEL]
-                    for tag in self.tags.all()[
-                        :MAX_NUMBER_OF_TAGS_OR_INGREDIENTS_PER_PAGE
-                    ]
-                ]
-            )
-        )
-
-    display_tags.short_description = 'Теги'
 
     class Meta:
         verbose_name = 'Рецепт'

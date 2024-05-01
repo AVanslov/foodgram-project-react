@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.shortcuts import get_object_or_404
 from django.utils.safestring import mark_safe
 
 from .models import (
@@ -109,6 +110,8 @@ class CookingTimeListFilter(admin.SimpleListFilter):
         if self.value() == 'долгие':
             return queryset.all()
 
+MAX_NUMBER_OF_TAGS_OR_INGREDIENTS_PER_PAGE = 15
+NUMBER_OF_VISIBLE_CHATACTERS_IN_ADMIN_PANEL = 50
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
@@ -118,7 +121,7 @@ class RecipeAdmin(admin.ModelAdmin):
         'author',
         'in_favorite_count',
         'cooking_time',
-        'image',
+        'display_image',
         'display_tags',
         'display_ingredients'
     )
@@ -127,16 +130,56 @@ class RecipeAdmin(admin.ModelAdmin):
     readonly_fields = ['preview']
 
     def preview(self, recipe):
-        return mark_safe(f'<img src="{recipe.image.url}">')
+        return mark_safe(
+            '<img style="max-width:200px; max-height:200px;"'
+            f'src="{recipe.image.url}">'
+        )
 
     @admin.display(description='Подписчики', empty_value=None)
     def in_favorite_count(self, recipe):
         return recipe.favorite.count()
 
-    def image(self, recipe):
+    @admin.display(description='Фотография', empty_value=None)
+    def display_image(self, recipe):
         return mark_safe(
-            f'<img scr="{recipe.image.url}"'
-            'style="max-width:200px; max-height:200px"/>'
+            '<img style="max-width:200px; max-height:200px;"'
+            f'src="{recipe.image.url}">'
+        )
+
+    @admin.display(description='Продукты', empty_value=None)
+    def display_ingredients(self, recipe):
+        return mark_safe(
+            '<br>'.join(
+                [
+                    (ingredient.name)[
+                        :NUMBER_OF_VISIBLE_CHATACTERS_IN_ADMIN_PANEL
+                    ] + ', '
+                    + ingredient.measurement_unit + ', '
+                    + str(
+                        get_object_or_404(
+                            RecipeIngredient,
+                            ingredient=ingredient,
+                            recipe=recipe
+                        ).amount
+                    )
+                    for ingredient in recipe.ingredients.all()[
+                        :MAX_NUMBER_OF_TAGS_OR_INGREDIENTS_PER_PAGE
+                    ]
+                ]
+            )
+        )
+
+    @admin.display(description='Теги', empty_value=None)
+    def display_tags(self, recipe):
+        return mark_safe(
+            '<br>'.join(
+                [
+                    (tag.name)[:NUMBER_OF_VISIBLE_CHATACTERS_IN_ADMIN_PANEL]
+                    for tag in recipe.tags.all()[
+                        :MAX_NUMBER_OF_TAGS_OR_INGREDIENTS_PER_PAGE
+                    ]
+                ]
+            )
         )
 
 
