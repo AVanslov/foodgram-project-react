@@ -19,7 +19,7 @@ from rest_framework.permissions import (
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .converters import create_report_about_ingredient
+from .converters import create_full_report_about_ingredient
 from .filters import (
     IngredientFilter,
     RecipeFilter,
@@ -267,18 +267,14 @@ class ApiShoppingCart(APIView):
 def get_list(request):
     user = request.user
     ingredients_data = ShoppingCart.objects.filter(user=user).values(
-        'recipe__ingredients__name'
+        'recipe__ingredients__name',
+        'recipe__ingredients__measurement_unit'
     ).annotate(
-        ingredient_amount=Sum('recipe__recipe_ingredients__amount')
+        ingredient_amount=Sum('recipe__recipe_ingredients__amount'),
     ).order_by('recipe__ingredients__name')
 
-    ingredients_list = [
-        create_report_about_ingredient(ingredient_number, ingredient)
-        for ingredient_number, ingredient
-        in enumerate(ingredients_data, start=1)
-    ]
     return FileResponse(
-        ingredients_list,
+        create_full_report_about_ingredient(ingredients_data),
         as_attachment=True,
         filename='list.txt'
     )
