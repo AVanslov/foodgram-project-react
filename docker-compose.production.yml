@@ -18,7 +18,7 @@ services:
     image: avanslov/foodgram_backend
     volumes:
       - static_value_prodaction:/code/static/
-      - media_value_prodaction:/code/media/
+      - media_value_prodaction:/app/media/
     depends_on:
       - db
     env_file:
@@ -42,7 +42,7 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - frontend_value_prodaction:/usr/share/nginx/html/
       - static_value_prodaction:/var/html/static/
-      - media_value_prodaction:/var/html/media/
+      - media_value_prodaction:/etc/nginx/html/media/
       - ../docs/:/usr/share/nginx/html/api/docs/
     depends_on:
       - backend
