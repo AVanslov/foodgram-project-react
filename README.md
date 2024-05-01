@@ -1,5 +1,4 @@
 ![example event parameter](https://github.com/avanslov/foodgram-project-react/actions/workflows/main.yml/badge.svg?event=push)
-# praktikum_new_diplom
 
 ## Описание
 **Сервис Foodgram - это готовый сервис для создания рецептов и выгрузки списка покупок на основе собранной пользователем корзины с рецептами.**
