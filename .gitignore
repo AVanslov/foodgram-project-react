@@ -136,4 +136,4 @@ json_converter.py
 
 request.http
 
-.backend/foodgram_project/media/
+/backend/foodgram_project/media/

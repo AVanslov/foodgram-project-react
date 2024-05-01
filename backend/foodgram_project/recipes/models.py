@@ -5,8 +5,6 @@ from django.core.validators import (
 from django.db import models
 from django.db.models import UniqueConstraint
 from django_extensions.validators import HexValidator
-from django.shortcuts import get_object_or_404
-from django.utils.safestring import mark_safe
 
 from .validators import (
     validate_found_special_symbols,
@@ -124,7 +122,7 @@ class Recipe(models.Model):
     )
     image = models.ImageField(
         'Фото рецепта',
-        upload_to='image/',
+        upload_to='images/',
         default=None,
     )
     name = models.CharField(

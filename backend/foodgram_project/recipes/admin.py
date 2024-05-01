@@ -14,6 +14,8 @@ from .models import (
 )
 
 NAME_MAX_LENGHT = 50
+MAX_NUMBER_OF_TAGS_OR_INGREDIENTS_PER_PAGE = 15
+NUMBER_OF_VISIBLE_CHARACTERS_IN_ADMIN_PANEL = 50
 
 
 class OnlyWithFollowersOrFollowingsListFilter(admin.SimpleListFilter):
@@ -110,8 +112,6 @@ class CookingTimeListFilter(admin.SimpleListFilter):
         if self.value() == 'долгие':
             return queryset.all()
 
-MAX_NUMBER_OF_TAGS_OR_INGREDIENTS_PER_PAGE = 15
-NUMBER_OF_VISIBLE_CHATACTERS_IN_ADMIN_PANEL = 50
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
@@ -152,7 +152,7 @@ class RecipeAdmin(admin.ModelAdmin):
             '<br>'.join(
                 [
                     (ingredient.name)[
-                        :NUMBER_OF_VISIBLE_CHATACTERS_IN_ADMIN_PANEL
+                        :NUMBER_OF_VISIBLE_CHARACTERS_IN_ADMIN_PANEL
                     ] + ', '
                     + ingredient.measurement_unit + ', '
                     + str(
@@ -174,7 +174,7 @@ class RecipeAdmin(admin.ModelAdmin):
         return mark_safe(
             '<br>'.join(
                 [
-                    (tag.name)[:NUMBER_OF_VISIBLE_CHATACTERS_IN_ADMIN_PANEL]
+                    (tag.name)[:NUMBER_OF_VISIBLE_CHARACTERS_IN_ADMIN_PANEL]
                     for tag in recipe.tags.all()[
                         :MAX_NUMBER_OF_TAGS_OR_INGREDIENTS_PER_PAGE
                     ]
