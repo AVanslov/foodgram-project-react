@@ -19,11 +19,11 @@ router.register('ingredients', IngredientViewSet)
 
 router.register('tags', TagViewSet)
 
-router.register(
-    r'users/(?P<user_id>\d+)/subscribe',
-    FollowViewSet,
-    basename='subscribe',
-)
+# router.register(
+#     r'users/(?P<user_id>\d+)/subscribe',
+    # FollowViewSet,
+    # basename='subscribe',
+# )
 router.register(
     'recipes',
     RecipeViewSet,

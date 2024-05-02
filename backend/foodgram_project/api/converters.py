@@ -1,16 +1,21 @@
 def create_report_about_ingredient(ingredient_number, ingredient):
-    return (
-        '<tr>'
-        + '<th>'
-        + str(ingredient_number) + '</th>'
-        + ' '.join(
-            '<th>' + str(value) + '</th>'
-            for key, value in ingredient.items()
-            if value and key != 'recipe__ingredients__measurement_unit'
-        ) + '<th>'
-        + str(ingredient['recipe__ingredients__measurement_unit']) + '</th>'
-        + '</tr>'
-    )
+    return ('''
+            <tr>
+                <th>{ingredient_number}</th>
+                {values}
+                <th>{measurement_unit}</th>
+            </tr>'''.format(
+            ingredient_number=str(ingredient_number),
+            values=(
+                ''.join(
+                    ('<th>{}</th>'.format(str(value)))
+                    for key, value in ingredient.items()
+                    if value and key != 'recipe__ingredients__measurement_unit'
+                )
+            ),
+            measurement_unit=str(
+                ingredient['recipe__ingredients__measurement_unit']
+            )))
 
 
 def create_full_report_about_ingredient(ingredients_data):
