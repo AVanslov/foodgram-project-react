@@ -11,7 +11,10 @@ SECRET_KEY = os.getenv('TOKEN', 'default-value')
 
 DEBUG = False
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(',')
+ALLOWED_HOSTS = os.getenv(
+    'ALLOWED_HOSTS',
+    default='127.0.0.1,localhost'
+).split(',')
 
 CSRF_TRUSTED_ORIGINS = ['https://foodgramius.ddns.net']
 
