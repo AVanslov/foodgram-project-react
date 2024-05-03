@@ -2,6 +2,10 @@ from django.contrib import admin
 from django.shortcuts import get_object_or_404
 from django.utils.safestring import mark_safe
 
+from .constants import (
+    MAX_NUMBER_OF_TAGS_OR_INGREDIENTS_PER_PAGE,
+    NUMBER_OF_VISIBLE_CHARACTERS_IN_ADMIN_PANEL,
+)
 from .models import (
     Favorite,
     Follow,
@@ -12,10 +16,6 @@ from .models import (
     Tag,
     User,
 )
-
-NAME_MAX_LENGHT = 50
-MAX_NUMBER_OF_TAGS_OR_INGREDIENTS_PER_PAGE = 15
-NUMBER_OF_VISIBLE_CHARACTERS_IN_ADMIN_PANEL = 50
 
 
 class OnlyWithFollowersOrFollowingsListFilter(admin.SimpleListFilter):

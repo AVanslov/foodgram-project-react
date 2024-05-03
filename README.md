@@ -91,8 +91,8 @@ sudo docker compose -f docker-compose.production.yml exec backend python manage.
 sudo docker compose -f docker-compose.production.yml exec backend python manage.py migrate
 sudo docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic
 sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/static/. /code/static/
-sudo docker compose -f docker-compose.production.yml exec backend python manage.py loaddata ingredients.json
-sudo docker compose -f docker-compose.production.yml exec backend python manage.py loaddata tags.json
+sudo docker compose -f docker-compose.production.yml exec backend python manage.py loaddata data/ingredients.json
+sudo docker compose -f docker-compose.production.yml exec backend python manage.py loaddata data/tags.json
 ```
 
 ***Автор***

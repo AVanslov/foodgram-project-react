@@ -5,9 +5,11 @@ from rest_framework.exceptions import ValidationError
 
 from .fields import Hex2NameColor
 from recipes.models import (
+    Favorite,
     Follow,
     Recipe,
     RecipeIngredient,
+    ShoppingCart,
     Ingredient,
     Tag,
     User,
@@ -27,10 +29,6 @@ class AuthorSerializer(UserSerializer):
         request = self.context['request']
         return (
             request.user.is_authenticated
-            # and Follow.objects.filter(
-            #     user=request.user,
-            #     following=user
-            # ).exists()
             and request.user.followers.filter(following=user).exists()
         )
 
@@ -110,10 +108,6 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         return (
             request
             and request.user.is_authenticated
-            # and Favorite.objects.filter(
-            #     user=request.user,
-            #     recipe=recipe.id
-            # ).exists()
             and request.user.favorite.filter(recipe=recipe).exists()
         )
 
@@ -122,10 +116,6 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         return (
             request
             and request.user.is_authenticated
-            # and ShoppingCart.objects.filter(
-            #     user=request.user,
-            #     recipe=recipe.id
-            # ).exists()
             and request.user.shoppingcart.filter(recipe=recipe).exists()
         )
 
@@ -166,9 +156,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             raise ValidationError('Список ингридиентов не может быть пустым.')
 
         check_unique_id = [ingredient.get('id') for ingredient in ingredients]
-        # for ingredient in ingredients:
-        #     ingredient_id = ingredient.get('id')
-        #     check_unique_id.append(ingredient_id)
 
         if len(check_unique_id) != len(set(check_unique_id)):
             raise ValidationError('Ингридиенты должны быть уникальными.')
@@ -199,7 +186,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         ingredients = validated_data.pop('recipe_ingredients')
         tags_data = validated_data.pop('tags')
-        # validated_data['author'] = self.context['request'].user
         recipe = Recipe.objects.create(
             **validated_data,
             author=self.context['request'].user
@@ -255,45 +241,12 @@ class RecipesReadFromFollowingSerializer(RecipeReadSerializer):
 
 
 class FollowSerializer(AuthorSerializer):
-    # username = serializers.CharField(
-    #     source='following.username',
-    #     read_only=True
-    # )
-    # id = serializers.PrimaryKeyRelatedField(
-    #     source='following.id',
-    #     read_only=True
-    # )
-    # first_name = serializers.CharField(
-    #     source='following.first_name',
-    #     read_only=True
-    # )
-    # last_name = serializers.CharField(
-    #     source='following.last_name',
-    #     read_only=True
-    # )
-    # email = serializers.CharField(
-    #     source='following.email',
-    #     read_only=True
-    # )
     is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.IntegerField(
         source='following.recipes.count',
         read_only=True
     )
-
-    # class Meta:
-    #     model = Follow
-    #     fields = (
-    #         'username',
-    #         'id',
-    #         'first_name',
-    #         'last_name',
-    #         'email',
-    #         'is_subscribed',
-    #         'recipes',
-    #         'recipes_count',
-    #     )
 
     class Meta:
         model = Follow
@@ -307,13 +260,11 @@ class FollowSerializer(AuthorSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        additional_values = {
-            'username': instance.user.username,
-            'id': instance.user.id,
-            'first_name': instance.user.first_name,
-            'last_name': instance.user.last_name,
-            'email': instance.user.email,
-        }
+        additional_values = AuthorSerializer(
+            instance.user,
+            context={'request': self.context.get('request')}
+        ).data
+
         for key, value in additional_values.items():
             representation[key] = value
 
@@ -348,5 +299,58 @@ class FollowSerializer(AuthorSerializer):
             result = result[:int(recipes_limit)]
         return RecipesReadFromFollowingSerializer(result, many=True).data
 
-    # def get_recipes_count(self, follow):
-    #     return follow.following.recipes.count
+
+class ShoppingCartSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ShoppingCart
+        fields = (
+            'user',
+            'recipe',
+        )
+
+    def to_representation(self, instance):
+        return RecipesReadFromFollowingSerializer(
+            instance.recipe,
+            context={'request': self.context.get('request')}
+        ).data
+
+    def validate(self, data):
+        request = self.context['request']
+        recipe_id = data.get('id')
+
+        if ShoppingCart.objects.filter(
+            user=request.user,
+            recipe__id=recipe_id
+        ).exists():
+            raise ValidationError('Рецепт уже добавлен в список покупок')
+
+        return data
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Favorite
+        fields = (
+            'user',
+            'recipe',
+        )
+
+    def to_representation(self, instance):
+        return RecipesReadFromFollowingSerializer(
+            instance.recipe,
+            context={'request': self.context.get('request')}
+        ).data
+
+    def validate(self, data):
+        request = self.context['request']
+        recipe_id = data.get('id')
+
+        if Favorite.objects.filter(
+            user=request.user,
+            recipe__id=recipe_id
+        ).exists():
+            raise ValidationError('Рецепт уже добавлен в список покупок')
+
+        return data

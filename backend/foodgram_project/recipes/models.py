@@ -6,20 +6,21 @@ from django.db import models
 from django.db.models import UniqueConstraint
 from django_extensions.validators import HexValidator
 
+from .constants import (
+    AMOUNT_MIN_VALUE,
+    COLOR_MAX_LENGHT,
+    COOKING_TIME_MIN_VALUE,
+    EMAIL_MAX_LENGHT,
+    FIRSTNAME_MAX_LENGHT,
+    LASTNAME_MAX_LENGHT,
+    NAME_MAX_LENGHT,
+    SLUG_MAX_LENGHT,
+    USERNAME_MAX_LENGHT,
+)
 from .validators import (
     validate_found_special_symbols,
     validate_not_djoser_endpoints,
 )
-
-FIRSTNAME_MAX_LENGHT = 150
-LASTNAME_MAX_LENGHT = 150
-USERNAME_MAX_LENGHT = 150
-EMAIL_MAX_LENGHT = 254
-
-NAME_MAX_LENGHT = 200
-SLUG_MAX_LENGHT = 200
-COLOR_MAX_LENGHT = 7
-NUMBER_OF_VISIBLE_CHATACTERS = 15
 
 
 class User(AbstractUser):
@@ -77,13 +78,13 @@ class Tag(models.Model):
         ),
     )
 
-    def __str__(self):
-        return f'{self.name}'
-
     class Meta:
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
         ordering = ('name',)
+
+    def __str__(self):
+        return self.name
 
 
 class Ingredient(models.Model):
@@ -98,13 +99,13 @@ class Ingredient(models.Model):
         default=None,
     )
 
-    def __str__(self):
-        return f'{self.name}'
-
     class Meta:
         verbose_name = 'Продукт'
         verbose_name_plural = 'Продукты'
         ordering = ('name',)
+
+    def __str__(self):
+        return self.name
 
 
 class Recipe(models.Model):
@@ -132,12 +133,11 @@ class Recipe(models.Model):
     text = models.TextField(
         'Описание рецепта',
         default='Описание рецепта',
-        blank=False,
     )
     cooking_time = models.PositiveIntegerField(
         verbose_name='Время приготовления в минутах',
         help_text='Введите время приготовления в минутах',
-        validators=[MinValueValidator(limit_value=1)],
+        validators=[MinValueValidator(limit_value=COOKING_TIME_MIN_VALUE)],
     )
     author = models.ForeignKey(
         User,
@@ -150,13 +150,13 @@ class Recipe(models.Model):
         auto_now_add=True,
     )
 
-    def __str__(self):
-        return f'{self.name}'
-
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
         ordering = ('-pub_date',)
+
+    def __str__(self):
+        return self.name
 
 
 class RecipeIngredient(models.Model):
@@ -179,15 +179,15 @@ class RecipeIngredient(models.Model):
     )
     amount = models.IntegerField(
         'Мера',
-        validators=[MinValueValidator(limit_value=1)],
+        validators=[MinValueValidator(limit_value=AMOUNT_MIN_VALUE)],
     )
-
-    def __str__(self):
-        return f'{self.ingredient} {self.recipe} {self.amount}'
 
     class Meta:
         verbose_name = 'Мера продукта в рецепте'
         verbose_name_plural = 'Меры продуктов в рецепте'
+
+    def __str__(self):
+        return f'{self.ingredient} {self.recipe} {self.amount}'
 
 
 class Follow(models.Model):
@@ -230,9 +230,6 @@ class UserRecipeModel(models.Model):
         verbose_name='Рецепт',
     )
 
-    def __str__(self):
-        return f'{self.user} {self.recipe}'
-
     class Meta:
         abstract = True
         constraints = [
@@ -242,6 +239,9 @@ class UserRecipeModel(models.Model):
             ),
         ]
         default_related_name = '%(class)s'
+
+    def __str__(self):
+        return f'{self.user} {self.recipe}'
 
 
 class Favorite(UserRecipeModel):
