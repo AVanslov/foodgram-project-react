@@ -185,6 +185,7 @@ class RecipeIngredient(models.Model):
     class Meta:
         verbose_name = 'Мера продукта в рецепте'
         verbose_name_plural = 'Меры продуктов в рецепте'
+        ordering = ('ingredient__name',)
 
     def __str__(self):
         return f'{self.ingredient} {self.recipe} {self.amount}'
@@ -216,6 +217,7 @@ class Follow(models.Model):
         ]
         verbose_name = 'Подписчик'
         verbose_name_plural = 'Подписчики'
+        ordering = ('user__username',)
 
 
 class UserRecipeModel(models.Model):
@@ -239,6 +241,7 @@ class UserRecipeModel(models.Model):
             ),
         ]
         default_related_name = '%(class)s'
+        ordering = ('user__username',)
 
     def __str__(self):
         return f'{self.user} {self.recipe}'

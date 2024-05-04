@@ -94,6 +94,7 @@ sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/sta
 sudo docker compose -f docker-compose.production.yml exec backend python manage.py loaddata data/ingredients.json
 sudo docker compose -f docker-compose.production.yml exec backend python manage.py loaddata data/tags.json
 ```
+**Развернутный проект доступен по сдресу [foodgramius.ddns.net](https://foodgramius.ddns.net/recipes)**
 
 ***Автор***
 Бучельников Александр

@@ -2,6 +2,7 @@ from djoser.serializers import UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from isdigit import IsDigit
 
 from .fields import Hex2NameColor
 from recipes.models import (
@@ -15,7 +16,7 @@ from recipes.models import (
     User,
 )
 
-MIN_INGREDIENTS_AMOUNT = 1
+digits = IsDigit()
 
 
 class AuthorSerializer(UserSerializer):
@@ -241,7 +242,6 @@ class RecipesReadFromFollowingSerializer(RecipeReadSerializer):
 
 
 class FollowSerializer(AuthorSerializer):
-    is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.IntegerField(
         source='following.recipes.count',
@@ -253,7 +253,6 @@ class FollowSerializer(AuthorSerializer):
         fields = (
             'user',
             'following',
-            'is_subscribed',
             'recipes',
             'recipes_count',
         )
@@ -285,72 +284,49 @@ class FollowSerializer(AuthorSerializer):
             raise ValidationError('Вы не можете подписаться на себя.')
         return data
 
-    def get_is_subscribed(self, follow):
-        return Follow.objects.filter(
-            user=self.context['request'].user,
-            following=follow.following
-        ).exists()
-
     def get_recipes(self, follow):
         request = self.context['request']
         recipes_limit = request.query_params.get('recipes_limit')
         result = follow.following.recipes.all()
-        if recipes_limit is not None:
+        if digits.is_digit(str(recipes_limit)):
             result = result[:int(recipes_limit)]
         return RecipesReadFromFollowingSerializer(result, many=True).data
 
 
-class ShoppingCartSerializer(serializers.ModelSerializer):
+class BaseShoppingCartAndFavoriteSerializer(serializers.ModelSerializer):
 
     class Meta:
+        fields = (
+            'user',
+            'recipe',
+        )
+
+    def to_representation(self, instance):
+        return RecipesReadFromFollowingSerializer(
+            instance.recipe,
+            context={'request': self.context.get('request')}
+        ).data
+
+    def validate(self, data):
+        request = self.context['request']
+        recipe_id = data.get('id')
+
+        if self.Meta.model.objects.filter(
+            user=request.user,
+            recipe__id=recipe_id
+        ).exists():
+            raise ValidationError('Рецепт уже добавлен в список покупок')
+
+        return data
+
+
+class ShoppingCartSerializer(BaseShoppingCartAndFavoriteSerializer):
+
+    class Meta(BaseShoppingCartAndFavoriteSerializer.Meta):
         model = ShoppingCart
-        fields = (
-            'user',
-            'recipe',
-        )
-
-    def to_representation(self, instance):
-        return RecipesReadFromFollowingSerializer(
-            instance.recipe,
-            context={'request': self.context.get('request')}
-        ).data
-
-    def validate(self, data):
-        request = self.context['request']
-        recipe_id = data.get('id')
-
-        if ShoppingCart.objects.filter(
-            user=request.user,
-            recipe__id=recipe_id
-        ).exists():
-            raise ValidationError('Рецепт уже добавлен в список покупок')
-
-        return data
 
 
-class FavoriteSerializer(serializers.ModelSerializer):
+class FavoriteSerializer(BaseShoppingCartAndFavoriteSerializer):
 
-    class Meta:
+    class Meta(BaseShoppingCartAndFavoriteSerializer.Meta):
         model = Favorite
-        fields = (
-            'user',
-            'recipe',
-        )
-
-    def to_representation(self, instance):
-        return RecipesReadFromFollowingSerializer(
-            instance.recipe,
-            context={'request': self.context.get('request')}
-        ).data
-
-    def validate(self, data):
-        request = self.context['request']
-        recipe_id = data.get('id')
-
-        if Favorite.objects.filter(
-            user=request.user,
-            recipe__id=recipe_id
-        ).exists():
-            raise ValidationError('Рецепт уже добавлен в список покупок')
-
-        return data

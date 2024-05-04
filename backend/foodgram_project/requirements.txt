@@ -39,3 +39,4 @@ django-filter==24.2
 psycopg2-binary==2.9.9
 flake8==6.0.0
 flake8-isort==6.0.0
+IsDigit==0.0.10
