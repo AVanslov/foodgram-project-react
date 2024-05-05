@@ -114,7 +114,6 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (AllowAny, )
 
 
-
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     filter_backends = (
