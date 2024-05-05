@@ -114,39 +114,6 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (AllowAny, )
 
 
-def shopping_cart_and_favorite(
-    self,
-    request,
-    recipe_id,
-    modelname,
-    serializername,
-):
-    if request.method == 'DELETE':
-        shopping_cart = modelname.objects.filter(
-            user=request.user,
-            recipe=get_object_or_404(Recipe, id=recipe_id)
-        )
-        if not shopping_cart.exists():
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        shopping_cart.delete()
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
-    additional_values = {
-        'user': self.request.user.id,
-        'recipe': recipe_id
-    }
-    serializer = serializername(
-        context={'request': request},
-        data=additional_values
-    )
-
-    serializer.is_valid(raise_exception=True)
-    serializer.save()
-    return Response(
-        serializer.data,
-        status=status.HTTP_201_CREATED,
-    )
-
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
@@ -165,6 +132,40 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeReadSerializer
         return RecipeWriteSerializer
 
+    @staticmethod
+    def shopping_cart_and_favorite(
+        self,
+        request,
+        recipe_id,
+        modelname,
+        serializername,
+    ):
+        if request.method == 'DELETE':
+            shopping_cart = modelname.objects.filter(
+                user=request.user,
+                recipe=get_object_or_404(Recipe, id=recipe_id)
+            )
+            if not shopping_cart.exists():
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            shopping_cart.delete()
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        additional_values = {
+            'user': self.request.user.id,
+            'recipe': recipe_id
+        }
+        serializer = serializername(
+            context={'request': request},
+            data=additional_values
+        )
+
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED,
+        )
+
     @action(
         detail=False,
         methods=['POST', 'DELETE'],
@@ -172,14 +173,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def shopping_cart(self, request, recipe_id=None):
-        modelname = ShoppingCart
-        serializername = ShoppingCartSerializer
-        return shopping_cart_and_favorite(
+        return self.shopping_cart_and_favorite(
             self,
             request,
             recipe_id,
-            modelname,
-            serializername,
+            modelname=ShoppingCart,
+            serializername=ShoppingCartSerializer,
         )
 
     @action(detail=False, methods=['GET'], url_path='download_shopping_cart')
@@ -205,14 +204,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated],
     )
     def favorite(self, request, recipe_id=None):
-        modelname = Favorite
-        serializername = FavoriteSerializer
-        return shopping_cart_and_favorite(
+        return self.shopping_cart_and_favorite(
             self,
             request,
             recipe_id,
-            modelname,
-            serializername,
+            modelname=Favorite,
+            serializername=FavoriteSerializer,
         )
 
 

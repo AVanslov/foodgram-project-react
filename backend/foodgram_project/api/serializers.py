@@ -2,7 +2,6 @@ from djoser.serializers import UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from isdigit import IsDigit
 
 from .fields import Hex2NameColor
 from recipes.models import (
@@ -15,8 +14,6 @@ from recipes.models import (
     Tag,
     User,
 )
-
-digits = IsDigit()
 
 
 class AuthorSerializer(UserSerializer):
@@ -260,7 +257,7 @@ class FollowSerializer(AuthorSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         additional_values = AuthorSerializer(
-            instance.user,
+            instance.following,
             context={'request': self.context.get('request')}
         ).data
 
@@ -286,9 +283,9 @@ class FollowSerializer(AuthorSerializer):
 
     def get_recipes(self, follow):
         request = self.context['request']
-        recipes_limit = request.query_params.get('recipes_limit')
+        recipes_limit = str(request.query_params.get('recipes_limit'))
         result = follow.following.recipes.all()
-        if digits.is_digit(str(recipes_limit)):
+        if recipes_limit.isdigit():
             result = result[:int(recipes_limit)]
         return RecipesReadFromFollowingSerializer(result, many=True).data
 

@@ -4,8 +4,8 @@ from django.core.validators import (
 )
 from django.db import models
 from django.db.models import UniqueConstraint
-from django_extensions.validators import HexValidator
 
+from .color_generator import color_generator
 from .constants import (
     AMOUNT_MIN_VALUE,
     COLOR_MAX_LENGHT,
@@ -18,6 +18,7 @@ from .constants import (
     USERNAME_MAX_LENGHT,
 )
 from .validators import (
+    isValidHexaCode,
     validate_found_special_symbols,
     validate_not_djoser_endpoints,
 )
@@ -64,9 +65,10 @@ class Tag(models.Model):
     )
     color = models.CharField(
         'Цвет',
+        unique=True,
         max_length=COLOR_MAX_LENGHT,
-        default='#ff0000',
-        validators=[HexValidator(length=COLOR_MAX_LENGHT)],
+        default=color_generator,
+        validators=[isValidHexaCode],
     )
     slug = models.SlugField(
         'Идентификатор',

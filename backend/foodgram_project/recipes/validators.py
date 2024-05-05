@@ -21,3 +21,16 @@ def validate_found_special_symbols(value):
             ('Введены следующие запрещенные символы: {}')
             .format(''.join(set(unexpected_symbols)))
         )
+
+
+def isValidHexaCode(str):
+    regex = "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+    p = re.compile(regex)
+    if (str is None):
+        return False
+    if (re.search(p, str)):
+        return True
+    else:
+        raise ValidationError(
+            'Код цвета должен начинаться с символа # и содержать шесть букв или цифр'
+        )
