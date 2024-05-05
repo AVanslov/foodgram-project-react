@@ -283,9 +283,9 @@ class FollowSerializer(AuthorSerializer):
 
     def get_recipes(self, follow):
         request = self.context['request']
-        recipes_limit = str(request.query_params.get('recipes_limit'))
+        recipes_limit = request.query_params.get('recipes_limit')
         result = follow.following.recipes.all()
-        if recipes_limit.isdigit():
+        if recipes_limit and recipes_limit.isdigit():
             result = result[:int(recipes_limit)]
         return RecipesReadFromFollowingSerializer(result, many=True).data
 
